@@ -1,0 +1,67 @@
+# EditorConfig - 跨编辑器代码风格一致性配置
+# https://editorconfig.org
+
+# 顶层配置文件，不再向上查找
+root = true
+
+# 所有文件的默认配置
+[*]
+# 字符编码
+charset = utf-8
+# 换行符类型 (lf, crlf, cr)
+end_of_line = lf
+# 缩进风格 (tab, space)
+indent_style = space
+# 缩进大小
+indent_size = 2
+# 最大行宽 (与 Prettier 配置一致)
+max_line_length = 120
+# 文件末尾插入空行
+insert_final_newline = true
+# 删除行尾空白字符
+trim_trailing_whitespace = true
+
+# TypeScript 文件
+[*.ts]
+indent_size = 2
+
+# JavaScript 文件
+[*.js]
+indent_size = 2
+
+# Vue 文件
+[*.vue]
+indent_size = 2
+
+# HTML 文件
+[*.html]
+indent_size = 2
+
+# CSS/Less/Scss 文件
+[*.{css,less,scss}]
+indent_size = 2
+
+# JSON 文件
+[*.json]
+indent_size = 2
+
+# YAML 文件
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown 文件
+[*.md]
+# Markdown 不删除行尾空格（语法需要）
+trim_trailing_whitespace = false
+
+# Makefile 必须使用 tab 缩进
+[Makefile]
+indent_style = tab
+
+# Shell 脚本
+[*.sh]
+indent_size = 2
+
+# Git 配置文件
+[.git*]
+indent_size = 2
