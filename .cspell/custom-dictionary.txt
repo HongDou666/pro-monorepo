@@ -61,6 +61,9 @@ isdefined
 isnumber
 isstring
 
+# VS Code 插件
+esbenp
+
 # 其他技术术语
 vitejs
 eslintignore
