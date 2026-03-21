@@ -27,6 +27,7 @@
     "src/**/*.vue",
     "src/types/auto-imports.d.ts",
     "src/types/components.d.ts",
-    "src/types/route.d.ts"
+    "src/types/route.d.ts",
+    "src/types/global.d.ts"
   ]
 }

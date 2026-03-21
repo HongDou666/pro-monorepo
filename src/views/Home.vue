@@ -5,7 +5,6 @@
 <template>
   <div class="home">
     <h1 class="home__title">首页</h1>
-    <p class="home__desc">欢迎来到 Pro Monorepo 项目</p>
 
     <div class="home__content">
       <a-card title="packages 物料组件演示" class="home__card">
@@ -44,12 +43,7 @@
     font-size: 28px;
     font-weight: 600;
     color: #1890ff;
-    margin-bottom: 8px;
-  }
-
-  &__desc {
-    color: #666;
-    margin-bottom: 24px;
+    margin: 6px 0 12px;
   }
 
   &__content {

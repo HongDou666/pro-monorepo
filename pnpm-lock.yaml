@@ -11,6 +11,9 @@ importers:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
         version: 7.0.1(vue@3.5.30(typescript@5.9.3))
+      '@micro-zoe/micro-app':
+        specifier: 1.0.0-rc.29
+        version: 1.0.0-rc.29
       '@pro-monorepo/components':
         specifier: workspace:*
         version: link:packages/components
@@ -740,6 +743,9 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@micro-zoe/micro-app@1.0.0-rc.29':
+    resolution: {integrity: sha512-yVRi9e28fHu9H3ctQT8rl2lrQw8WvKu+DcQ8yi/n+2+UCBwxJi9tDyZHzNJRSQfDCKFIv0LGg7ABEJ7+G1rIkA==}
 
   '@napi-rs/wasm-runtime@1.1.1':
     resolution: {integrity: sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A==}
@@ -4544,6 +4550,8 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
+
+  '@micro-zoe/micro-app@1.0.0-rc.29': {}
 
   '@napi-rs/wasm-runtime@1.1.1':
     dependencies:

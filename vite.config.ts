@@ -7,7 +7,14 @@ import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          /* 这个报错不像子应用请求失败，更像主应用页面自身在无限递归渲染。你这个页面文件名就是 MicroApp.vue，而模板里又写了 <micro-app>，Vue 会把它优先当成“当前组件自引用”，这正好对应 runtime-core 的栈溢出 */
+          isCustomElement: tag => tag === "micro-app"
+        }
+      }
+    }),
     AutoImport({
       // 自动导入 Vue 3 Composition API
       imports: ["vue", "vue-router"],

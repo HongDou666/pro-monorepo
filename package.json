@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@micro-zoe/micro-app": "1.0.0-rc.29",
     "@pro-monorepo/components": "workspace:*",
     "ant-design-vue": "^4.2.6",
     "dayjs": "^1.11.20",

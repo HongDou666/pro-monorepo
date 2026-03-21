@@ -72,6 +72,12 @@ oldb
 oldc
 oldd
 
+# MicroApp 相关
+microapp
+micro-app
+beforemount
+unmount
+
 # 其他技术术语
 vitejs
 eslintignore

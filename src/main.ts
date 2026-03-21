@@ -4,6 +4,7 @@ import App from "@/App.vue";
 import router from "@/router";
 import { setupRouterGuard } from "@/router/router-guard";
 import { setupNProgress } from "@/plugins/nprogress";
+import { setupMicroApp } from "@/plugins/micro-app";
 
 /**
  * 初始化应用
@@ -11,6 +12,9 @@ import { setupNProgress } from "@/plugins/nprogress";
 async function bootstrap() {
   // 初始化 NProgress 进度条
   setupNProgress();
+
+  // 初始化 MicroApp 微前端框架
+  setupMicroApp();
 
   // 创建 Vue 应用实例
   const app = createApp(App);
