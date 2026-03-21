@@ -4,6 +4,15 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "types": ["vite/client"],
 
+    /* 路径映射别名 */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "~/*": ["node_modules/*"],
+      "@pro-monorepo/components/*": ["packages/components/src/*"],
+      "@pro-monorepo/utils/*": ["packages/utils/src/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import viteLogo from "../assets/vite.svg";
-import heroImg from "../assets/hero.png";
-import vueLogo from "../assets/vue.svg";
+import viteLogo from "@/assets/vite.svg";
+import heroImg from "@/assets/hero.png";
+import vueLogo from "@/assets/vue.svg";
 
 const count = ref(0);
 </script>
@@ -106,7 +106,7 @@ const count = ref(0);
 
 <!-- 1. Less 变量 与 混合 -->
 <style scoped lang="less">
-@import url("./index.less");
+@import url("@/components/index.less");
 
 @bgColor: #ff6f61;
 @height: 100px;
