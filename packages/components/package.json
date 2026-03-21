@@ -1,15 +1,33 @@
 {
   "name": "@pro-monorepo/components",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "组件库 - Vue 3 组件集合",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "vue",
+    "vue3",
+    "components",
+    "typescript"
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
   "buildOptions": {
     "name": "ProMonorepoComponents",
     "formats": [

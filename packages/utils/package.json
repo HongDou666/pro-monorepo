@@ -1,12 +1,27 @@
 {
   "name": "@pro-monorepo/utils",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "公共工具库 - 包含浏览器存储、加密解密等工具函数",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "utils",
+    "storage",
+    "crypto",
+    "typescript"
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",

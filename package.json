@@ -15,7 +15,9 @@
     "lint:spellcheck": "cspell lint \"(packages|apps)/**/*.{js,ts,mjs,cjs,json,css,less,scss,vue,html,md}\"",
     "commit": "git-cz",
     "prepare": "husky",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "build:packages": "node scripts/build.js",
+    "dev:packages": "node scripts/dev.js"
   },
   "config": {
     "commitizen": {
