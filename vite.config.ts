@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import { AntDesignVueResolver } from "unplugin-vue-components/resolvers";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
@@ -19,6 +21,23 @@ export default defineConfig({
       },
       // 目录导入（自动导入 composables 和 stores 目录下的导出）
       dirs: ["src/composables", "src/stores"]
+    }),
+    Components({
+      // 自动导入组件的目录
+      dirs: ["src/components"],
+      // 组件的有效扩展名
+      extensions: ["vue"],
+      // 搜索子目录
+      deep: true,
+      // 生成 TypeScript 类型声明文件
+      dts: "src/types/components.d.ts",
+      // 组件名称解析配置
+      resolvers: [
+        // Ant Design Vue 组件自动导入
+        AntDesignVueResolver({
+          importStyle: false // css 在 main.ts 中全局引入
+        })
+      ]
     })
   ],
   resolve: {

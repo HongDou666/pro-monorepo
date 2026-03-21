@@ -31,5 +31,6 @@ dist-ssr
 
 # Auto imports
 src/types/auto-imports.d.ts
+src/types/components.d.ts
 .eslint-auto-import.json
 
