@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+build/
+.output/
+
+# 缓存
+.cache/
+.temp/
+*.local
+
+# 日志
+*.log*
+
+# 编辑器
+.vscode/
+.idea/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 第三方库
+**/vendor/**
+
+# 自动生成的文件
+**/*.d.ts
+**/coverage/**
+
+# 静态资源
+public/
+**/assets/images/
