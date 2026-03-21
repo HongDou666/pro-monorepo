@@ -29,3 +29,7 @@ dist-ssr
 .cursorrules
 .codex
 
+# Auto imports
+src/types/auto-imports.d.ts
+.eslint-auto-import.json
+

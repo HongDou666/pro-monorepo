@@ -5,6 +5,7 @@ import eslintPluginPrettier from "eslint-plugin-prettier";
 import eslintPluginVue from "eslint-plugin-vue";
 import globals from "globals";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
+import autoImportGlobals from "./.eslint-auto-import.json" with { type: "json" };
 
 /**
  * 忽略文件配置
@@ -33,7 +34,8 @@ const baseConfig = {
     globals: {
       ...globals.browser,
       ...globals.node,
-      ...globals.es2021
+      ...globals.es2021,
+      ...autoImportGlobals.globals
     },
     parserOptions: {
       ecmaFeatures: {
