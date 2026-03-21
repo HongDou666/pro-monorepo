@@ -1,11 +1,6 @@
 <script setup lang="ts">
 // 微前端应用页面
 const loading = ref(false);
-
-const microApps = [
-  { name: "Vue 子应用", path: "/micro-app/vue", status: "运行中" },
-  { name: "React 子应用", path: "/micro-app/react", status: "开发中" }
-];
 </script>
 
 <template>
@@ -14,26 +9,6 @@ const microApps = [
     <p class="micro-app__desc">管理和展示子应用</p>
 
     <div class="micro-app__content">
-      <a-card title="子应用列表" class="micro-app__card">
-        <a-table
-          :data-source="microApps"
-          :columns="[
-            { title: '应用名称', dataIndex: 'name', key: 'name' },
-            { title: '路径', dataIndex: 'path', key: 'path' },
-            { title: '状态', dataIndex: 'status', key: 'status' }
-          ]"
-          row-key="name"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'status'">
-              <a-tag :color="record.status === '运行中' ? 'green' : 'orange'">
-                {{ record.status }}
-              </a-tag>
-            </template>
-          </template>
-        </a-table>
-      </a-card>
-
       <a-card title="快速操作" class="micro-app__card">
         <a-space direction="vertical" style="width: 100%">
           <a-button type="primary" :loading="loading">启动所有子应用</a-button>
@@ -41,6 +16,8 @@ const microApps = [
           <a-button danger>清除缓存</a-button>
         </a-space>
       </a-card>
+
+      <a-card title="子应用" class="micro-app__card"> </a-card>
     </div>
   </div>
 </template>
@@ -63,7 +40,7 @@ const microApps = [
 
   &__content {
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 200px 1fr;
     gap: 24px;
 
     @media (max-width: 768px) {

@@ -11,8 +11,17 @@ const menuItems = [
   { key: "/micro-app", label: "微前端应用" }
 ];
 
-// 当前选中的菜单
-const selectedKeys = computed(() => [route.path]);
+// 当前选中的菜单 - 使用 ref 避免初始化闪烁
+const selectedKeys = ref<string[]>([]);
+
+// 监听路由变化，更新选中菜单
+watch(
+  () => route.path,
+  path => {
+    selectedKeys.value = [path];
+  },
+  { immediate: true }
+);
 
 // 路由跳转
 const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
