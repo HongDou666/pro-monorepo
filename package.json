@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "build:all": "pnpm build:packages && pnpm build",
     "preview": "vite preview",
     "lint:prettier": "prettier --write \"**/*.{js,ts,mjs,cjs,json,tsx,css,less,scss,vue,html,md}\"",
     "lint:eslint": "eslint .",
@@ -17,7 +18,10 @@
     "prepare": "husky",
     "precommit": "lint-staged",
     "build:packages": "node scripts/build.js",
-    "dev:packages": "node scripts/dev.js"
+    "dev:packages": "node scripts/dev.js",
+    "test": "vitest",
+    "publish:utils": "pnpm --filter \"@pro-monorepo/utils\" publish --no-git-checks",
+    "publish:components": "pnpm --filter \"@pro-monorepo/components\" publish --no-git-checks"
   },
   "config": {
     "commitizen": {
@@ -36,11 +40,16 @@
     "@commitlint/config-conventional": "^20.5.0",
     "@cspell/dict-lorem-ipsum": "^4.0.5",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.2",
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
+    "@testing-library/vue": "^8.1.0",
     "@types/node": "^24.12.0",
     "@vitejs/plugin-vue": "^6.0.5",
+    "@vitest/browser": "^4.1.0",
+    "@vitest/browser-playwright": "^4.1.0",
+    "@vitest/coverage-v8": "^4.1.0",
     "@vue/tsconfig": "^0.9.0",
     "commitizen": "^4.3.1",
     "cspell": "^9.7.0",
@@ -50,7 +59,9 @@
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-vue": "^10.8.0",
     "globals": "^17.4.0",
+    "happy-dom": "^20.8.4",
     "husky": "^9.1.7",
+    "jsdom": "^29.0.1",
     "less": "^4.6.4",
     "lint-staged": "^16.4.0",
     "postcss-html": "^1.8.1",
@@ -66,6 +77,8 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.1",
     "vite": "^8.0.1",
+    "vitest": "^4.1.0",
+    "vitest-browser-vue": "^2.1.0",
     "vue-tsc": "^3.2.5"
   },
   "engines": {
