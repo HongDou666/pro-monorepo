@@ -15,3 +15,18 @@ export {
   createStorage,
   default as storage
 } from "./storage";
+
+// 加密解密工具
+export {
+  base64Encode,
+  base64Decode,
+  xorEncrypt,
+  xorDecrypt,
+  generateKey,
+  aesEncrypt,
+  aesDecrypt,
+  sha256,
+  sha512,
+  md5,
+  default as cryptoUtils
+} from "./crypto";

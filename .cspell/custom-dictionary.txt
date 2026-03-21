@@ -64,6 +64,14 @@ isstring
 # VS Code 插件
 esbenp
 
+# MD5 算法相关变量
+binl
+binarray
+olda
+oldb
+oldc
+oldd
+
 # 其他技术术语
 vitejs
 eslintignore
