@@ -14,11 +14,14 @@ const __dirname = path.dirname(__filename);
 const packages = ["utils", "components"];
 
 /** 默认外部依赖 */
-const defaultExternal = ["vue"];
+const defaultExternal = ["vue", "ant-design-vue", "@ant-design/icons-vue", "dayjs"];
 
 /** 默认全局变量映射 */
 const defaultGlobals = {
-  vue: "Vue"
+  vue: "Vue",
+  "ant-design-vue": "antd",
+  "@ant-design/icons-vue": "iconsVue",
+  dayjs: "dayjs"
 };
 
 /**

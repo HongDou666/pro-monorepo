@@ -3,5 +3,4 @@
  * 组件库
  */
 
-// 组件将在这里导出
-export {};
+export * from "./ProRangePicker";
