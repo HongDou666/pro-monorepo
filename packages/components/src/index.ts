@@ -4,3 +4,4 @@
  */
 
 export * from "./ProRangePicker";
+export * from "./ProInputStorage";
