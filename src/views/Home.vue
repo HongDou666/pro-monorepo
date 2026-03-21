@@ -1,10 +1,5 @@
 <script setup lang="ts">
 // 首页 - 演示自动导入功能
-const count = ref(0);
-
-function handleIncrement() {
-  count.value++;
-}
 </script>
 
 <template>
@@ -13,11 +8,10 @@ function handleIncrement() {
     <p class="home__desc">欢迎来到 Pro Monorepo 项目</p>
 
     <div class="home__content">
-      <a-card title="计数器演示" class="home__card">
-        <p>当前计数: {{ count }}</p>
-        <a-space>
-          <a-button type="primary" @click="handleIncrement">增加</a-button>
-          <a-button @click="count = 0">重置</a-button>
+      <a-card title="packages 物料组件演示" class="home__card">
+        <a-space direction="vertical">
+          <InputStorage />
+          <RangePicker />
         </a-space>
       </a-card>
 
@@ -65,6 +59,12 @@ function handleIncrement() {
 
   &__card {
     margin-bottom: 16px;
+    :deep(.pro-input-storage) {
+      .pro-input-storage__key,
+      .pro-input-storage__value {
+        width: 120px;
+      }
+    }
   }
 }
 </style>
