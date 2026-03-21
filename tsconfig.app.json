@@ -21,5 +21,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/types/auto-imports.d.ts", "src/types/components.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/types/auto-imports.d.ts",
+    "src/types/components.d.ts",
+    "src/types/route.d.ts"
+  ]
 }

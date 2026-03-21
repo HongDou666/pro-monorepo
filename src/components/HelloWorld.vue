@@ -2,11 +2,27 @@
 import viteLogo from "@/assets/vite.svg";
 import heroImg from "@/assets/hero.png";
 import vueLogo from "@/assets/vue.svg";
+import { message } from "ant-design-vue";
+
+const success = () => {
+  message.success("This is a success message");
+};
+const error = () => {
+  message.error("This is an error message");
+};
+const warning = () => {
+  message.warning("This is a warning message");
+};
 
 const count = ref(0);
 </script>
 
 <template>
+  <a-space>
+    <a-button @click="success">Success</a-button>
+    <a-button @click="error">Error</a-button>
+    <a-button @click="warning">Warning</a-button>
+  </a-space>
   <section id="center">
     <div class="hero">
       <img :src="heroImg" class="base" width="170" height="179" alt="" />
