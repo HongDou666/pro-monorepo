@@ -192,7 +192,14 @@ const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
 }
 
 .app-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
   background: #f9fafb;
+
+  :deep(.micro-app) {
+    flex: 1;
+  }
 }
 
 .app-footer {

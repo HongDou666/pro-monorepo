@@ -38,6 +38,7 @@
 <style scoped lang="less">
 .home {
   padding: 24px;
+  width: 100%;
 
   &__title {
     font-size: 28px;
@@ -53,7 +54,7 @@
 
   &__content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
   }
 

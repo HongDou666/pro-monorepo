@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// 微前端应用页面
-const loading = ref(false);
+import type { SizeType } from "ant-design-vue/es/config-provider";
+const size = ref<SizeType>("large");
 </script>
 
 <template>
@@ -11,9 +11,11 @@ const loading = ref(false);
     <div class="micro-app__content">
       <a-card title="快速操作" class="micro-app__card">
         <a-space direction="vertical" style="width: 100%">
-          <a-button type="primary" :loading="loading">启动所有子应用</a-button>
-          <a-button>停止所有子应用</a-button>
-          <a-button danger>清除缓存</a-button>
+          <a-radio-group v-model:value="size">
+            <a-radio-button value="large">Large</a-radio-button>
+            <a-radio-button value="default">Default</a-radio-button>
+            <a-radio-button value="small">Small</a-radio-button>
+          </a-radio-group>
         </a-space>
       </a-card>
 
@@ -24,10 +26,15 @@ const loading = ref(false);
 
 <style scoped lang="less">
 .micro-app {
-  padding: 24px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 12px;
+  min-height: 100%;
 
   &__title {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 600;
     color: #1890ff;
     margin-bottom: 8px;
@@ -40,7 +47,10 @@ const loading = ref(false);
 
   &__content {
     display: grid;
+    flex: 1;
+    align-content: start;
     grid-template-columns: 200px 1fr;
+    grid-template-rows: 1fr;
     gap: 24px;
 
     @media (max-width: 768px) {
@@ -50,6 +60,14 @@ const loading = ref(false);
 
   &__card {
     margin-bottom: 16px;
+    :deep(.ant-radio-group) {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      > label {
+        border-radius: 0;
+      }
+    }
   }
 }
 </style>
