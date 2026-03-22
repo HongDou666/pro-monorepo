@@ -15,6 +15,7 @@ export {
   createStorage,
   default as storage
 } from "./storage";
+export type { PrefixedStorage, StorageData, StorageOptions, StorageType } from "./storage";
 
 // 加密解密工具
 export {

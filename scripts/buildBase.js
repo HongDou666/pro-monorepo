@@ -79,7 +79,7 @@ async function getRollupConfig(root) {
           compilerOptions: {
             nodeTransforms: [
               node => {
-                if (node.type === 1) {
+                if (node.type === 1 && Array.isArray(node.props)) {
                   node.props = node.props.filter(prop => !(prop.type === 6 && prop.name === "data-testid"));
                 }
               }

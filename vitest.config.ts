@@ -27,7 +27,7 @@ export default defineConfig({
             enabled: true,
             provider: playwright({
               launchOptions: {
-                headless: false // false = 显示浏览器窗口
+                headless: process.env.CI === "true"
               }
             }),
             // 必须指定 instances

@@ -1,4 +1,13 @@
 /* declare global 扩展Ts全局变量类型 */
+interface ImportMetaEnv {
+  readonly VITE_MICRO_APP_VUE_URL?: string;
+  readonly VITE_MICRO_APP_REACT_URL?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {

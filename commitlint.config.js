@@ -43,7 +43,17 @@ export default {
       { value: "revert", name: "⏪ 回滚: 代码回滚" },
       { value: "style", name: "🎨 样式: 格式调整（不影响代码运行）" }
     ],
-    scopes: ["root", "backend", "frontend", "cli", "components", "utils"],
+    scopes: [
+      "root",
+      "backend",
+      "frontend",
+      "cli",
+      "components",
+      "utils",
+      "eslint-config",
+      "stylelint-config",
+      "prettier"
+    ],
     allowCustomScopes: true,
     skipQuestions: ["body", "footerPrefix", "footer", "breaking"], // 跳过“详细描述”和“底部信息”
     messages: {

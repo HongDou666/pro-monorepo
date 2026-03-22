@@ -19,6 +19,7 @@ import {
   MICRO_APP_MESSAGE_TYPE,
   type MicroAppName
 } from "../../shared/micro-app/communication";
+import { MICRO_APP_URLS, isMicroAppDebugEnabled } from "@/plugins/micro-app-config";
 
 // 当前选中的子应用
 const currentApp = ref<MicroAppName>("vite-vue");
@@ -27,11 +28,11 @@ const currentApp = ref<MicroAppName>("vite-vue");
 const microApps: Record<MicroAppName, { name: MicroAppName; url: string }> = {
   "vite-vue": {
     name: "vite-vue",
-    url: "http://localhost:5174/"
+    url: MICRO_APP_URLS["vite-vue"]
   },
   "vite-react": {
     name: "vite-react",
-    url: "http://localhost:5175/"
+    url: MICRO_APP_URLS["vite-react"]
   }
 };
 
@@ -50,7 +51,10 @@ function bindSubAppDataListener(appName: MicroAppName) {
 
   // 使用稳定的单一监听器接收子应用回传消息。
   activeDataListener = data => {
-    console.log(`[主应用] 收到 ${appName} 数据:`, data);
+    if (isMicroAppDebugEnabled()) {
+      console.log(`[主应用] 收到 ${appName} 数据:`, data);
+    }
+
     receivedData.value = formatMicroAppMessage(data);
     message.info(`收到 ${appName} 的通信数据`);
   };
@@ -86,13 +90,17 @@ function sendDataToSubApp() {
 // 子应用加载完成
 function handleMounted() {
   loading.value = false;
-  console.log(`[MicroApp] ${currentApp.value} 加载完成`);
+
+  if (isMicroAppDebugEnabled()) {
+    console.log(`[MicroApp] ${currentApp.value} 加载完成`);
+  }
 }
 
 // 子应用加载错误
 function handleError() {
   loading.value = false;
   console.error(`[MicroApp] ${currentApp.value} 加载失败`);
+  message.error(`${currentApp.value} 加载失败，请检查子应用服务或环境变量配置`);
 }
 
 onMounted(() => {

@@ -1,11 +1,12 @@
 {
-  "name": "my-vue-app",
+  "name": "vite-vue",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -15,9 +16,11 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@pro-monorepo/eslint-config": "workspace:*",
     "@types/node": "^24.12.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/tsconfig": "^0.9.0",
+    "eslint": "^10.1.0",
     "typescript": "~5.9.3",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^31.0.0",

@@ -4,10 +4,10 @@
  */
 
 /** 存储类型 */
-type StorageType = "local" | "session";
+export type StorageType = "local" | "session";
 
 /** 存储配置 */
-interface StorageOptions {
+export interface StorageOptions {
   /** 存储类型：localStorage 或 sessionStorage */
   type?: StorageType;
   /** 过期时间（毫秒），不设置则永不过期 */
@@ -15,7 +15,7 @@ interface StorageOptions {
 }
 
 /** 存储数据结构 */
-interface StorageData<T> {
+export interface StorageData<T> {
   /** 存储的值 */
   value: T;
   /** 过期时间戳 */
@@ -163,7 +163,7 @@ export function getStorageSize(options: StorageOptions = {}): number {
 }
 
 /** 带前缀的存储实例接口 */
-interface PrefixedStorage {
+export interface PrefixedStorage {
   /** 设置存储 */
   set<T>(key: string, value: T, opts?: StorageOptions): void;
   /** 获取存储 */
