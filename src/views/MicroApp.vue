@@ -13,15 +13,12 @@
  */
 import { message } from "ant-design-vue";
 import microApp from "@micro-zoe/micro-app";
-
-type MicroAppName = "vite-vue" | "vite-react";
-
-interface MicroAppMessage<TPayload = Record<string, unknown>> {
-  source: "main" | MicroAppName;
-  type: string;
-  timestamp: number;
-  payload: TPayload;
-}
+import {
+  createMicroAppMessage,
+  formatMicroAppMessage,
+  MICRO_APP_MESSAGE_TYPE,
+  type MicroAppName
+} from "../../shared/micro-app/communication";
 
 // 当前选中的子应用
 const currentApp = ref<MicroAppName>("vite-vue");
@@ -39,7 +36,7 @@ const microApps: Record<MicroAppName, { name: MicroAppName; url: string }> = {
 };
 
 // 子应用加载状态
-const loading = ref(false);
+const loading = ref(true);
 
 // 当前面板展示的最近一次通信内容
 const receivedData = ref<string>("");
@@ -48,17 +45,13 @@ const receivedData = ref<string>("");
 let activeDataListener: ((data: Record<PropertyKey, unknown>) => void) | null = null;
 let activeListenerAppName: MicroAppName | null = null;
 
-function formatMessage(messageData: unknown) {
-  return JSON.stringify(messageData, null, 2);
-}
-
 function bindSubAppDataListener(appName: MicroAppName) {
   unbindSubAppDataListener();
 
   // 使用稳定的单一监听器接收子应用回传消息。
   activeDataListener = data => {
     console.log(`[主应用] 收到 ${appName} 数据:`, data);
-    receivedData.value = formatMessage(data);
+    receivedData.value = formatMicroAppMessage(data);
     message.info(`收到 ${appName} 的通信数据`);
   };
 
@@ -80,18 +73,13 @@ function unbindSubAppDataListener() {
 // 发送数据到子应用
 function sendDataToSubApp() {
   const targetApp = currentApp.value;
-  const data: MicroAppMessage<{ text: string }> = {
-    source: "main",
-    type: "main.greeting",
-    timestamp: Date.now(),
-    payload: {
-      text: `来自主应用的问候，目标子应用: ${targetApp}`
-    }
-  };
+  const data = createMicroAppMessage("main", MICRO_APP_MESSAGE_TYPE.MAIN_GREETING, {
+    text: `来自主应用的问候，目标子应用: ${targetApp}`
+  });
 
   // setData 会将消息交给 micro-app 数据中心管理。
   // 即使子应用稍后才挂载，只要子应用使用 addDataListener(autoTrigger=true)，也能拿到最近一次数据。
-  microApp.setData(targetApp, data);
+  microApp.setData(targetApp, data as unknown as Record<PropertyKey, unknown>);
   message.success(`数据已发送到 ${targetApp}`);
 }
 
@@ -116,6 +104,7 @@ onUnmounted(() => {
 });
 
 watch(currentApp, nextApp => {
+  loading.value = true;
   receivedData.value = "";
   unbindSubAppDataListener();
   bindSubAppDataListener(nextApp);

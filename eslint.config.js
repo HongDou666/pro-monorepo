@@ -1,4 +1,5 @@
 import { defineConfig } from "eslint/config";
+import { fileURLToPath } from "node:url";
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintPluginPrettier from "eslint-plugin-prettier";
@@ -6,6 +7,8 @@ import eslintPluginVue from "eslint-plugin-vue";
 import globals from "globals";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 import autoImportGlobals from "./.eslint-auto-import.json" with { type: "json" };
+
+const tsconfigRootDir = fileURLToPath(new URL(".", import.meta.url));
 
 /**
  * 忽略文件配置
@@ -38,6 +41,7 @@ const baseConfig = {
       ...autoImportGlobals.globals
     },
     parserOptions: {
+      tsconfigRootDir,
       ecmaFeatures: {
         jsx: true
       }
@@ -325,6 +329,7 @@ export default defineConfig([
     files: ["**/*.vue"],
     languageOptions: {
       parserOptions: {
+        tsconfigRootDir,
         parser: tseslint.parser
       }
     },

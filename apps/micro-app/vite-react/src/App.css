@@ -1,0 +1,128 @@
+.sub-app-shell {
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #fff7ed 0%, #fff 100%);
+}
+
+.sub-app-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto 24px;
+}
+
+.sub-app-shell__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ea580c;
+}
+
+.sub-app-shell__title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sub-app-shell__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sub-app-shell__link {
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: #4b5563;
+  text-decoration: none;
+  background: rgb(251 146 60 / 12%);
+  transition: all 0.2s ease;
+}
+
+.sub-app-shell__link:hover {
+  color: #111827;
+  background: rgb(251 146 60 / 18%);
+}
+
+.sub-app-shell__link.active {
+  color: #fff;
+  background: #111827;
+}
+
+.sub-app-shell__main {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.sub-app-shell__fallback {
+  padding: 32px;
+  border-radius: 20px;
+  background: #fff;
+  color: #4b5563;
+  text-align: center;
+  border: 1px solid #fed7aa;
+}
+
+.home-page__panel {
+  padding: 28px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid #fed7aa;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
+}
+
+.home-page__eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ea580c;
+}
+
+.home-page__title {
+  margin: 0 0 12px;
+  font-size: 28px;
+  color: #111827;
+}
+
+.home-page__desc {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+.communication-page__card {
+  width: min(100%, 640px);
+  margin: 0 auto;
+}
+
+.communication-page__data {
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.communication-page__data pre {
+  margin: 0;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .sub-app-shell__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sub-app-shell__title,
+  .home-page__title {
+    font-size: 24px;
+  }
+}

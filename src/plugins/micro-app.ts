@@ -7,8 +7,11 @@ export function setupMicroApp(): void {
   microApp.start({
     // 使用 state 模式，避免与主应用路由冲突
     "router-mode": "state",
-    // 预加载子应用
-    preFetchApps: [{ name: "vite-vue", url: "http://localhost:5174/" }],
+    // 统一预加载已经接入通信协议的子应用，减少首次切换等待时间。
+    preFetchApps: [
+      { name: "vite-vue", url: "http://localhost:5174/" },
+      { name: "vite-react", url: "http://localhost:5175/" }
+    ],
     // 全局生命周期钩子
     lifeCycles: {
       created() {

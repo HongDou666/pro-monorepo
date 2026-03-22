@@ -21,6 +21,23 @@ export default defineConfig({
       dts: "src/components.d.ts"
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("ant-design-vue")) {
+            return "vendor-antd-vue";
+          }
+
+          if (id.includes("vue-router") || id.includes("/vue/")) {
+            return "vendor-vue";
+          }
+
+          return undefined;
+        }
+      }
+    }
+  },
   server: {
     port: 5174,
     headers: {
