@@ -162,7 +162,6 @@ code {
   box-sizing: border-box;
   width: 1126px;
   max-width: 100%;
-  min-height: 100svh;
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--border);

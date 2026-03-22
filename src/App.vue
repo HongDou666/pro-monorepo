@@ -196,6 +196,7 @@ const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
   flex: 1;
   min-height: 0;
   background: #f9fafb;
+  padding: 12px;
 
   :deep(.micro-app) {
     flex: 1;

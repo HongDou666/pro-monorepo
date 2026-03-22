@@ -71,7 +71,6 @@ function handleError() {
   flex: 1;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 12px;
   min-height: 100%;
 
   &__title {
@@ -95,8 +94,6 @@ function handleError() {
   }
 
   &__card {
-    margin-bottom: 16px;
-
     :deep(.ant-radio-group) {
       display: flex;
       flex-direction: column;
@@ -122,8 +119,6 @@ function handleError() {
   &__container {
     width: 100%;
     height: 100%;
-    min-height: 500px;
-    overflow: auto;
 
     micro-app {
       width: 100%;
