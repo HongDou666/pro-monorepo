@@ -8,6 +8,7 @@
 
       <nav class="sub-app-shell__nav">
         <RouterLink to="/" class="sub-app-shell__link">首页</RouterLink>
+        <RouterLink to="/components" class="sub-app-shell__link">组件演示</RouterLink>
         <RouterLink to="/communication" class="sub-app-shell__link">通信面板</RouterLink>
       </nav>
     </header>
