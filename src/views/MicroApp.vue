@@ -42,6 +42,19 @@ const loading = ref(true);
 // 当前面板展示的最近一次通信内容
 const receivedData = ref<string>("");
 
+function createMainAppGreetingMessage(targetApp: MicroAppName) {
+  return createMicroAppMessage("main", MICRO_APP_MESSAGE_TYPE.MAIN_GREETING, {
+    text: `来自主应用的问候，目标子应用: ${targetApp}`,
+    targetApp,
+    syncMode: "data"
+  });
+}
+
+// data 属性用于声明式同步当前主应用上下文，保留 setData 逻辑用于按钮触发场景。
+const subAppData = computed<Record<PropertyKey, unknown>>(() => {
+  return createMainAppGreetingMessage(currentApp.value) as unknown as Record<PropertyKey, unknown>;
+});
+
 // 记录当前绑定的监听函数，切换子应用时需要先解绑旧监听
 let activeDataListener: ((data: Record<PropertyKey, unknown>) => void) | null = null;
 let activeListenerAppName: MicroAppName | null = null;
@@ -77,9 +90,7 @@ function unbindSubAppDataListener() {
 // 发送数据到子应用
 function sendDataToSubApp() {
   const targetApp = currentApp.value;
-  const data = createMicroAppMessage("main", MICRO_APP_MESSAGE_TYPE.MAIN_GREETING, {
-    text: `来自主应用的问候，目标子应用: ${targetApp}`
-  });
+  const data = createMainAppGreetingMessage(targetApp);
 
   // setData 会将消息交给 micro-app 数据中心管理。
   // 即使子应用稍后才挂载，只要子应用使用 addDataListener(autoTrigger=true)，也能拿到最近一次数据。
@@ -150,6 +161,7 @@ watch(currentApp, nextApp => {
           <micro-app
             :name="microApps[currentApp].name"
             :url="microApps[currentApp].url"
+            :data="subAppData"
             iframe
             @mounted="handleMounted"
             @error="handleError"

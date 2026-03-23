@@ -16,6 +16,7 @@ declare global {
       "micro-app": {
         name: string;
         url: string;
+        data?: Record<PropertyKey, unknown>;
         iframe?: boolean;
         disableSandbox?: boolean;
         destroy?: boolean;
