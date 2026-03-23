@@ -1,0 +1,6 @@
+{
+  "app": "main-app",
+  "message": "主应用已经接入 @pro-monorepo/axios 公共请求实例",
+  "features": ["并发控制", "批量取消", "失败重试", "请求缓存"],
+  "timestamp": "2026-03-23T00:00:00.000Z"
+}

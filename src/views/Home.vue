@@ -1,5 +1,42 @@
 <script setup lang="ts">
-// 首页 - 演示自动导入功能
+import {
+  fetchMainHttpDemo,
+  getMainHttpCacheKeys,
+  getMainPendingRequestCount,
+  type MainHttpDemoResponse
+} from "@/api/demo";
+import { cancelMainHttpRequests } from "@/api/http";
+
+const httpDemo = ref<MainHttpDemoResponse | null>(null);
+const httpLogs = ref<string[]>(["主应用请求实例已创建，可直接从 @/api/http 与 @/api/demo 复用"]);
+const isLoadingDemo = ref(false);
+
+function pushLog(content: string) {
+  httpLogs.value = [content, ...httpLogs.value].slice(0, 6);
+}
+
+async function handleLoadDemo(useCache: boolean) {
+  isLoadingDemo.value = true;
+  try {
+    const response = await fetchMainHttpDemo({
+      runtimeOptions: { cache: useCache ? { ttl: 20_000 } : false }
+    });
+
+    httpDemo.value = response.data;
+    pushLog(
+      `${useCache ? "缓存模式" : "直连模式"}请求完成，缓存条目 ${getMainHttpCacheKeys().length}，待处理请求 ${getMainPendingRequestCount()}`
+    );
+  } catch (error) {
+    pushLog(`请求失败: ${(error as Error).message}`);
+  } finally {
+    isLoadingDemo.value = false;
+  }
+}
+
+function handleCancelRequests() {
+  cancelMainHttpRequests("Home demo canceled manually");
+  pushLog(`已取消主应用未完成请求，当前待处理 ${getMainPendingRequestCount()}`);
+}
 </script>
 
 <template>
@@ -46,6 +83,28 @@
           </template>
         </a-list>
       </a-card>
+
+      <a-card title="公共请求包接入示例" class="home__card">
+        <a-space direction="vertical" size="middle" style="width: 100%">
+          <p class="home__tip">
+            主应用已经接入 <code>@pro-monorepo/axios</code>，默认开启并发控制、失败重试和短时缓存。
+          </p>
+          <a-space wrap>
+            <a-button type="primary" :loading="isLoadingDemo" @click="handleLoadDemo(true)">读取缓存数据</a-button>
+            <a-button :loading="isLoadingDemo" @click="handleLoadDemo(false)">绕过缓存请求</a-button>
+            <a-button danger @click="handleCancelRequests">取消未完成请求</a-button>
+          </a-space>
+          <div class="home__result">
+            <pre v-if="httpDemo">{{ JSON.stringify(httpDemo, null, 2) }}</pre>
+            <span v-else>点击上方按钮读取 public/mock/http-demo.json，验证主应用请求实例。</span>
+          </div>
+          <ul class="home__log-list">
+            <li v-for="item in httpLogs" :key="item" class="home__log-item">
+              {{ item }}
+            </li>
+          </ul>
+        </a-space>
+      </a-card>
     </div>
   </div>
 </template>
@@ -76,6 +135,54 @@
         width: 120px;
       }
     }
+  }
+
+  &__tip {
+    margin: 0;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.7;
+
+    code {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 13px;
+    }
+  }
+
+  &__result {
+    min-height: 120px;
+    padding: 14px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #0f172a;
+    overflow: auto;
+
+    pre {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+  }
+
+  &__log-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__log-item {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 13px;
   }
 }
 </style>

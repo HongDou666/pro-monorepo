@@ -1,0 +1,45 @@
+{
+  "name": "@pro-monorepo/axios",
+  "version": "1.0.0",
+  "description": "基于 axios 的公共请求库，支持并发控制、批量取消、失败重试与请求缓存",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "cd ../.. && vitest run --project axios"
+  },
+  "keywords": [
+    "axios",
+    "http",
+    "request",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0",
+  "dependencies": {
+    "axios": "^1.13.1"
+  },
+  "buildOptions": {
+    "name": "ProMonorepoAxios",
+    "formats": [
+      "esm",
+      "cjs",
+      "iife"
+    ]
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

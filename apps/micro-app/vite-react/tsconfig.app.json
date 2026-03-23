@@ -8,6 +8,11 @@
     "types": ["vite/client"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@pro-monorepo/axios": ["../../../packages/axios/src"],
+      "@pro-monorepo/axios/*": ["../../../packages/axios/src/*"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",

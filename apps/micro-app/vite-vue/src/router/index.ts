@@ -19,6 +19,11 @@ const router = createRouter({
       component: () => import("../views/ComponentsView.vue")
     },
     {
+      path: "/http",
+      name: "http",
+      component: () => import("../views/HttpView.vue")
+    },
+    {
       path: "/communication",
       name: "communication",
       component: () => import("../views/CommunicationView.vue")

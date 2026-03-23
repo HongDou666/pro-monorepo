@@ -6,6 +6,9 @@
       <p class="home-view__desc">
         通信页已经通过路由懒加载拆成异步 chunk，只有进入“通信面板”时才会加载 antd 组件和通信逻辑。
       </p>
+      <p class="home-view__desc home-view__desc--extra">
+        现在还新增了“请求示例”页面，用于演示 Vue 子应用复用共享 axios 公共包。
+      </p>
     </div>
   </section>
 </template>
@@ -39,6 +42,10 @@
     font-size: 15px;
     line-height: 1.7;
     color: #475569;
+
+    &--extra {
+      margin-top: 12px;
+    }
   }
 }
 </style>

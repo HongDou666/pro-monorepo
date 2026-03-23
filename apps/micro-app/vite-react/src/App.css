@@ -115,6 +115,66 @@
   font-size: 12px;
 }
 
+.home-page__desc--extra {
+  margin-top: 12px;
+}
+
+.http-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.http-page__panel {
+  border-color: #fed7aa;
+}
+
+.http-page__card {
+  border-radius: 20px;
+}
+
+.http-page__result {
+  min-height: 120px;
+  padding: 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #111827;
+  overflow: auto;
+}
+
+.http-page__result pre {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.http-page__desc code {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(251 146 60 / 12%);
+  color: #c2410c;
+  font-size: 13px;
+}
+
+.http-page__logs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.http-page__logItem {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 @media (max-width: 768px) {
   .sub-app-shell__header {
     align-items: flex-start;

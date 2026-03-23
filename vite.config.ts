@@ -56,6 +56,7 @@ export default defineConfig({
       // node_modules 别名 (用于引入 node_modules 中的包)
       "~": fileURLToPath(new URL("./node_modules", import.meta.url)),
       // 公共包别名
+      "@pro-monorepo/axios": fileURLToPath(new URL("./packages/axios/src", import.meta.url)),
       "@pro-monorepo/components": fileURLToPath(new URL("./packages/components/src", import.meta.url)),
       "@pro-monorepo/utils": fileURLToPath(new URL("./packages/utils/src", import.meta.url))
     }

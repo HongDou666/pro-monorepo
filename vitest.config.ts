@@ -15,6 +15,15 @@ export default defineConfig({
           environment: "jsdom"
         }
       },
+      // axios 包测试 - 使用 jsdom 环境模拟 AbortController 等浏览器 API
+      {
+        test: {
+          name: "axios",
+          include: ["packages/axios/__test__/**/*.{test,spec}.{ts,js}"],
+          exclude: ["node_modules", "dist"],
+          environment: "jsdom"
+        }
+      },
       // components 包测试 - 浏览器模式（打开浏览器窗口）
       {
         plugins: [vue()],

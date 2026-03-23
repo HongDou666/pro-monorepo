@@ -7,6 +7,9 @@ function HomePage() {
         <p className="home-page__desc pro-desc">
           通信页已通过 React.lazy 和路由懒加载拆成异步 chunk，进入“通信面板”时才会加载 antd 和微前端通信逻辑。
         </p>
+        <p className="home-page__desc pro-desc home-page__desc--extra">
+          现在还新增了“请求示例”页面，用于演示 React 子应用如何复用共享 axios 公共包。
+        </p>
       </div>
     </section>
   );

@@ -31,6 +31,7 @@
 │  ├─ vite-vue/                  # Vue 子应用
 │  └─ vite-react/                # React 子应用
 ├─ packages/
+│  ├─ axios/                     # 公共请求库
 │  ├─ utils/                     # 工具库
 │  ├─ components/                # 组件库
 │  ├─ eslint-config/             # 共享 ESLint flat config 包
@@ -151,6 +152,18 @@ pnpm lint:spellcheck
 
 - XOR 与 MD5 只适用于演示、兼容或弱安全场景，不适合作为强安全方案。
 - crypto 模块当前仍保留“失败时返回空字符串”的兼容行为；如果你要用于安全敏感数据，请在业务层显式校验返回值并补充失败处理。
+
+### @pro-monorepo/axios
+
+提供基于 axios 的统一请求封装，适用于主应用与微前端子应用复用：
+
+- `createHttpClient`：创建独立请求实例
+- 请求并发控制：限制同时发出的请求数量
+- `cancelAllRequests`：取消当前实例下所有未完成请求
+- 失败重试：支持重试次数、延迟与自定义重试条件
+- 请求缓存：默认支持 GET/HEAD 请求的内存缓存
+
+详细使用方式见 [packages/axios/README.md](packages/axios/README.md)。
 
 ### @pro-monorepo/components
 

@@ -23,7 +23,8 @@
     "dev:packages": "node scripts/dev.js",
     "test": "vitest",
     "publish:utils": "pnpm --filter \"@pro-monorepo/utils\" publish --no-git-checks",
-    "publish:components": "pnpm --filter \"@pro-monorepo/components\" publish --no-git-checks"
+    "publish:components": "pnpm --filter \"@pro-monorepo/components\" publish --no-git-checks",
+    "publish:axios": "pnpm --filter \"@pro-monorepo/axios\" publish --no-git-checks"
   },
   "config": {
     "commitizen": {
@@ -33,8 +34,10 @@
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@micro-zoe/micro-app": "1.0.0-rc.29",
+    "@pro-monorepo/axios": "workspace:*",
     "@pro-monorepo/components": "workspace:*",
     "ant-design-vue": "^4.2.6",
+    "axios": "^1.13.1",
     "dayjs": "^1.11.20",
     "nprogress": "^0.2.0",
     "vue": "^3.5.30",

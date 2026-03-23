@@ -4,6 +4,7 @@ import UnoCSS from "unocss/vite";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { AntDesignVueResolver } from "unplugin-vue-components/resolvers";
+import { fileURLToPath, URL } from "node:url";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -38,6 +39,11 @@ export default defineConfig({
           return undefined;
         }
       }
+    }
+  },
+  resolve: {
+    alias: {
+      "@pro-monorepo/axios": fileURLToPath(new URL("../../../packages/axios/src", import.meta.url))
     }
   },
   server: {

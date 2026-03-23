@@ -4,13 +4,26 @@
  * 首屏只保留轻量导航和路由占位，通信页中的 antd 与业务逻辑通过 lazy route 异步加载。
  */
 import { Suspense, lazy } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { cancelReactMicroRequests } from "./api/http";
 import "./App.css";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const CommunicationPage = lazy(() => import("./pages/CommunicationPage"));
+const HttpPage = lazy(() => import("./pages/HttpPage"));
 
 function App() {
+  const location = useLocation();
+  const previousPathRef = useRef(location.pathname);
+
+  useEffect(() => {
+    if (previousPathRef.current !== location.pathname) {
+      cancelReactMicroRequests(`React micro route switching to ${location.pathname}`);
+      previousPathRef.current = location.pathname;
+    }
+  }, [location.pathname]);
+
   return (
     <div className="sub-app-shell pro-react-shell">
       <header className="sub-app-shell__header pro-shell-container">
@@ -23,6 +36,9 @@ function App() {
           <NavLink to="/" end className="sub-app-shell__link">
             首页
           </NavLink>
+          <NavLink to="/http" className="sub-app-shell__link">
+            请求示例
+          </NavLink>
           <NavLink to="/communication" className="sub-app-shell__link">
             通信面板
           </NavLink>
@@ -33,6 +49,7 @@ function App() {
         <Suspense fallback={<div className="sub-app-shell__fallback pro-react-fallback">页面加载中...</div>}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/http" element={<HttpPage />} />
             <Route path="/communication" element={<CommunicationPage />} />
           </Routes>
         </Suspense>

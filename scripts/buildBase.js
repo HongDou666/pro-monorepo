@@ -11,7 +11,7 @@ const __filename = URL.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** 需要构建的 package 列表 */
-const packages = ["utils", "components"];
+const packages = ["utils", "components", "axios"];
 
 /** 默认外部依赖 */
 const defaultExternal = ["vue", "ant-design-vue", "@ant-design/icons-vue", "dayjs"];
@@ -53,10 +53,15 @@ async function getRollupConfig(root) {
   const tsconfig = path.resolve(root, "tsconfig.json");
 
   // 合并外部依赖
-  const external = [...defaultExternal];
+  const external = [
+    ...new Set([...defaultExternal, ...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})])
+  ];
 
   // 合并全局变量映射
-  const globals = { ...defaultGlobals };
+  const globals = {
+    ...defaultGlobals,
+    axios: "axios"
+  };
 
   const rollupOptions = {
     input: entry,

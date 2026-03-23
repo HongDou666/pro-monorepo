@@ -1,5 +1,6 @@
 import type { Router } from "vue-router";
 import NProgress from "@/plugins/nprogress";
+import { cancelMainHttpRequests } from "@/api/http";
 
 /**
  * 设置路由守卫
@@ -10,6 +11,9 @@ export function setupRouterGuard(router: Router): void {
   router.beforeEach((to, _from, next) => {
     // 启动进度条
     NProgress.start();
+
+    // 路由切换前取消当前主应用中尚未完成的请求，避免页面切走后旧响应回写。
+    cancelMainHttpRequests(`Main route switching to ${to.path}`);
 
     // 设置页面标题
     const title = to.meta.title as string;
