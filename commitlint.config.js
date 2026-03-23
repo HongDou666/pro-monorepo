@@ -52,6 +52,7 @@ export default {
       "utils",
       "eslint-config",
       "stylelint-config",
+      "unocss-config",
       "prettier"
     ],
     allowCustomScopes: true,

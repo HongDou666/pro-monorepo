@@ -1,9 +1,9 @@
 <template>
-  <div class="sub-app-shell">
-    <header class="sub-app-shell__header">
+  <div class="sub-app-shell pro-micro-shell">
+    <header class="sub-app-shell__header pro-micro-header">
       <div>
-        <p class="sub-app-shell__eyebrow">vite-vue micro app</p>
-        <h1 class="sub-app-shell__title">Vue 子应用</h1>
+        <p class="sub-app-shell__eyebrow pro-eyebrow text-warning">vite-vue micro app</p>
+        <h1 class="sub-app-shell__title pro-title">Vue 子应用</h1>
       </div>
 
       <nav class="sub-app-shell__nav">

@@ -12,11 +12,11 @@ const CommunicationPage = lazy(() => import("./pages/CommunicationPage"));
 
 function App() {
   return (
-    <div className="sub-app-shell">
-      <header className="sub-app-shell__header">
+    <div className="sub-app-shell pro-react-shell">
+      <header className="sub-app-shell__header pro-shell-container">
         <div>
-          <p className="sub-app-shell__eyebrow">vite-react micro app</p>
-          <h1 className="sub-app-shell__title">React 子应用</h1>
+          <p className="sub-app-shell__eyebrow pro-eyebrow text-warning">vite-react micro app</p>
+          <h1 className="sub-app-shell__title pro-title">React 子应用</h1>
         </div>
 
         <nav className="sub-app-shell__nav">
@@ -30,7 +30,7 @@ function App() {
       </header>
 
       <main className="sub-app-shell__main">
-        <Suspense fallback={<div className="sub-app-shell__fallback">页面加载中...</div>}>
+        <Suspense fallback={<div className="sub-app-shell__fallback pro-react-fallback">页面加载中...</div>}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/communication" element={<CommunicationPage />} />

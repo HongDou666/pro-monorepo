@@ -21,7 +21,9 @@ export function createStylelintConfig() {
             "tailwind",
             "apply",
             "layer",
+            "screen",
             "config",
+            "unocss",
             "use",
             "forward",
             "mixin",
@@ -41,6 +43,7 @@ export function createStylelintConfig() {
         {
           ignoreFunctions: [
             "v-bind",
+            "theme",
             "percentage",
             "extract",
             "length",

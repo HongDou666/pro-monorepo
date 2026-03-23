@@ -1,0 +1,17 @@
+{
+  "name": "@pro-monorepo/unocss-config",
+  "version": "1.0.0",
+  "description": "Monorepo shared UnoCSS config",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "CHANGELOG.md"
+  ],
+  "peerDependencies": {
+    "unocss": "^66.6.7"
+  },
+  "packageManager": "pnpm@10.15.0"
+}

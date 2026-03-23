@@ -6,6 +6,7 @@
 - micro-app 微前端主子应用通信示例
 - React 与 Vue 子应用
 - 可独立发布的 utils、components 与共享配置包
+- UnoCSS 原子化样式与统一设计 token
 - Vitest 测试、ESLint、Stylelint、Prettier、CSpell 质量检查
 
 ## 技术栈
@@ -16,6 +17,7 @@
 - Vue 3 + TypeScript
 - React 19 + TypeScript
 - micro-app
+- UnoCSS
 - Vitest
 - Rollup
 
@@ -33,6 +35,7 @@
 │  ├─ components/                # 组件库
 │  ├─ eslint-config/             # 共享 ESLint flat config 包
 │  ├─ stylelint-config/          # 共享 Stylelint 配置包
+│  ├─ unocss-config/             # 共享 UnoCSS 配置包
 │  └─ cli/                       # 预留目录，当前未实现
 ├─ scripts/                      # 构建、开发、提交流程脚本
 ├─ public/                       # 主应用静态资源
@@ -174,11 +177,22 @@ pnpm lint:spellcheck
 
 根级 [stylelint.config.js](stylelint.config.js) 通过 `extends: ["@pro-monorepo/stylelint-config"]` 复用共享规则；后续如果子应用需要独立 Stylelint 入口，也应直接扩展该包。
 
+### @pro-monorepo/unocss-config
+
+提供 monorepo 统一 UnoCSS 配置工厂：
+
+- 共享设计 token：颜色、阴影、圆角、字体、容器宽度
+- 共享 shortcuts：`pro-panel`、`pro-shell-page`、`pro-title` 等基础布局语义类
+- 共享 transformers：支持 variant group 与 `@apply`
+
+根应用、Vue 子应用、React 子应用分别在各自的 [uno.config.ts](uno.config.ts)、[apps/micro-app/vite-vue/uno.config.ts](apps/micro-app/vite-vue/uno.config.ts)、[apps/micro-app/vite-react/uno.config.ts](apps/micro-app/vite-react/uno.config.ts) 中基于该包做轻量扩展。
+
 ## 共享配置维护约定
 
 ### 版本策略
 
 - `@pro-monorepo/eslint-config` 与 `@pro-monorepo/stylelint-config` 视为基础设施包，应独立维护版本。
+- `@pro-monorepo/unocss-config` 同样视为基础设施包，主题 token 或 shortcuts 的破坏性调整应按 breaking change 处理。
 - 新增规则、调整默认规则、升级关键 lint 插件时，应同步更新对应包的 `CHANGELOG.md`。
 - 如果规则变更可能导致现有代码新增报错，按 breaking change 处理，不要静默合并。
 
@@ -186,11 +200,13 @@ pnpm lint:spellcheck
 
 - ESLint 共享配置变更记录位于 [packages/eslint-config/CHANGELOG.md](packages/eslint-config/CHANGELOG.md)。
 - Stylelint 共享配置变更记录位于 [packages/stylelint-config/CHANGELOG.md](packages/stylelint-config/CHANGELOG.md)。
+- UnoCSS 共享配置变更记录位于 [packages/unocss-config/CHANGELOG.md](packages/unocss-config/CHANGELOG.md)。
 - Prettier 仓库级治理说明位于 [docs/prettier-governance.md](docs/prettier-governance.md)。
 
 ### 提交建议
 
 - 修改共享配置时，优先使用 `eslint-config` 或 `stylelint-config` 作为 commit scope。
+- 修改 UnoCSS 共享配置时，优先使用 `unocss-config` 作为 commit scope。
 - 修改仓库级格式化约定时，优先使用 `prettier` 作为 commit scope。
 - 同时影响根仓与子应用时，再使用 `root` 或更具体的业务 scope。
 

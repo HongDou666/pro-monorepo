@@ -83,6 +83,13 @@ vitejs
 eslintignore
 stylelintignore
 prettierignore
+unocss
+attributify
+fffdf
+fafc
+Hiragino
+Menlo
+Consolas
 nonblock
 nonwords
 gitignore

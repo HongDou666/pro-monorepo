@@ -4,7 +4,23 @@
 
 <template>
   <div class="home">
-    <h1 class="home__title">首页</h1>
+    <section class="mb-6 pro-dashboard-hero">
+      <p class="pro-eyebrow text-brand-deep">monorepo workspace</p>
+      <div class="items-start mt-4 pro-dashboard-grid">
+        <div>
+          <h1 class="md:text-[40px] pro-title text-[32px]">首页</h1>
+          <p class="max-w-[52ch] mt-3 pro-desc">
+            当前仓库已经具备共享 lint、共享 stylelint 与共享 UnoCSS 配置，主应用与两个子应用可以复用同一套设计 token。
+          </p>
+        </div>
+        <div class="pro-panel-muted px-5 py-4 text-left">
+          <p class="pro-eyebrow text-success">style system</p>
+          <p class="leading-7 mt-3 text-ink-muted text-sm">
+            UnoCSS 负责原子类与基础语义 shortcuts，业务局部样式继续由 Less 与组件样式承接，避免样式职责混乱。
+          </p>
+        </div>
+      </div>
+    </section>
 
     <div class="home__content">
       <a-card title="packages 物料组件演示" class="home__card">
