@@ -1,4 +1,10 @@
-import { AxiosError, type AxiosAdapter, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import {
+  AxiosError,
+  AxiosHeaders,
+  type AxiosAdapter,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig
+} from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHttpClient, setupHttpInterceptors } from "../src";
 
@@ -56,13 +62,15 @@ describe("@pro-monorepo/axios", () => {
   it("应该能够取消所有未完成请求", async () => {
     const adapter: AxiosAdapter = config => {
       return new Promise((resolve, reject) => {
-        config.signal?.addEventListener(
-          "abort",
-          () => {
-            reject(new AxiosError("canceled", AxiosError.ERR_CANCELED, config));
-          },
-          { once: true }
-        );
+        if (config.signal && typeof config.signal.addEventListener === "function") {
+          config.signal.addEventListener(
+            "abort",
+            () => {
+              reject(new AxiosError("canceled", AxiosError.ERR_CANCELED, config));
+            },
+            { once: true }
+          );
+        }
 
         setTimeout(() => resolve(createResponse(config, { ok: true })), 100);
       });
@@ -260,13 +268,19 @@ describe("@pro-monorepo/axios", () => {
   });
 });
 
-function createResponse<T = unknown>(config: AxiosRequestConfig, data: T): AxiosResponse<T> {
+function createResponse<T = unknown>(config: Partial<InternalAxiosRequestConfig>, data: T): AxiosResponse<T> {
+  const normalizedConfig: InternalAxiosRequestConfig = {
+    headers: new AxiosHeaders(),
+    method: "get",
+    ...config
+  };
+
   return {
     data,
     status: 200,
     statusText: "OK",
     headers: {},
-    config
+    config: normalizedConfig
   };
 }
 
