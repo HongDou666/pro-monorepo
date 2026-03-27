@@ -2,13 +2,19 @@ import microApp from "@micro-zoe/micro-app";
 import { MICRO_APP_URLS, isMicroAppDebugEnabled } from "./micro-app-config";
 
 function debugMicroAppLog(message: string): void {
+  // 调试日志统一收口，避免到处散落 import.meta.env.DEV 判断。
   if (isMicroAppDebugEnabled()) {
     console.log(message);
   }
 }
 
 /**
- * 初始化 MicroApp 微前端框架
+ * 初始化 micro-app 容器。
+ *
+ * 这里负责配置一次全局行为：
+ * 1. 路由模式，避免与主应用 history 冲突。
+ * 2. 预加载策略，降低首次切换到子应用时的等待。
+ * 3. 生命周期日志，方便排查子应用装载问题。
  */
 export function setupMicroApp(): void {
   microApp.start({

@@ -8,8 +8,17 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHttpClient, setupHttpInterceptors } from "../src";
 
+/**
+ * 请求库回归测试。
+ *
+ * 覆盖重点：
+ * 1. 并发限制是否生效。
+ * 2. 批量取消、失败重试和缓存是否按预期工作。
+ * 3. 拦截器是否能处理 token、业务错误和自动解包。
+ */
 describe("@pro-monorepo/axios", () => {
   beforeEach(() => {
+    // 某些测试会用到异步调度，统一恢复真实计时器避免相互污染。
     vi.useRealTimers();
   });
 
@@ -22,6 +31,7 @@ describe("@pro-monorepo/axios", () => {
     let maxActiveCount = 0;
     const resolvers: Array<(value: AxiosResponse) => void> = [];
 
+    // 用可控 adapter 模拟“请求完成时机”，从而验证并发队列是否真的只放行两条请求。
     const adapter: AxiosAdapter = config => {
       activeCount += 1;
       maxActiveCount = Math.max(maxActiveCount, activeCount);
@@ -45,6 +55,7 @@ describe("@pro-monorepo/axios", () => {
     const task2 = client.get("/task-2");
     const task3 = client.get("/task-3");
 
+    // 前两条应立即执行，第三条应进入等待队列。
     await flushPromises();
     expect(maxActiveCount).toBe(2);
     expect(client.getPendingCount()).toBe(3);
@@ -60,6 +71,7 @@ describe("@pro-monorepo/axios", () => {
   });
 
   it("应该能够取消所有未完成请求", async () => {
+    // adapter 同时监听 abort 事件，模拟真实 axios 在 signal 取消时的拒绝行为。
     const adapter: AxiosAdapter = config => {
       return new Promise((resolve, reject) => {
         if (config.signal && typeof config.signal.addEventListener === "function") {
@@ -96,6 +108,8 @@ describe("@pro-monorepo/axios", () => {
 
   it("请求失败后应该按配置重试", async () => {
     let count = 0;
+
+    // 前两次故意失败，第三次成功，用于验证 retry 次数和 delay 流程。
     const adapter: AxiosAdapter = config => {
       count += 1;
       if (count < 3) {
@@ -121,6 +135,8 @@ describe("@pro-monorepo/axios", () => {
 
   it("应该命中缓存并减少重复请求", async () => {
     let count = 0;
+
+    // 同一个请求签名连续调用两次，第二次应直接命中缓存而不是再次走 adapter。
     const adapter: AxiosAdapter = config => {
       count += 1;
 
@@ -146,6 +162,8 @@ describe("@pro-monorepo/axios", () => {
 
   it("可以按请求覆盖全局能力开关", async () => {
     let count = 0;
+
+    // 这个用例同时验证：关闭 retry 后失败不再补偿，关闭 cache 后每次都直连。
     const adapter: AxiosAdapter = config => {
       count += 1;
       if (count === 1) {
@@ -192,6 +210,8 @@ describe("@pro-monorepo/axios", () => {
 
   it("应该通过请求拦截器自动附带 token", async () => {
     let authorization = "";
+
+    // 直接读取 adapter 收到的 Authorization 头，验证请求拦截器注入是否成功。
     const adapter: AxiosAdapter = config => {
       authorization = String(config.headers?.Authorization ?? "");
 
@@ -212,6 +232,8 @@ describe("@pro-monorepo/axios", () => {
 
   it("应该通过响应拦截器识别业务码并提示错误", async () => {
     const showError = vi.fn();
+
+    // HTTP 层成功，但业务码失败，应该抛出业务错误而不是普通网络错误。
     const adapter: AxiosAdapter = config => {
       return Promise.resolve(
         createResponse(config, {
@@ -244,6 +266,7 @@ describe("@pro-monorepo/axios", () => {
   });
 
   it("应该通过响应拦截器自动解包业务数据", async () => {
+    // 默认成功响应会把 payload.data 自动解包到 response.data，减少业务层重复访问 data.data。
     const adapter: AxiosAdapter = config => {
       return Promise.resolve(
         createResponse(config, {
@@ -254,6 +277,7 @@ describe("@pro-monorepo/axios", () => {
           }
         })
       );
+      // 构造一个最小可用的 axios 响应对象，供自定义 adapter 测试复用。
     };
 
     const client = createHttpClient({
@@ -284,6 +308,7 @@ function createResponse<T = unknown>(config: Partial<InternalAxiosRequestConfig>
   };
 }
 
+// 等待当前微任务和一轮定时器调度完成，便于观察并发队列状态变化。
 function flushPromises() {
   return new Promise(resolve => setTimeout(resolve, 0));
 }

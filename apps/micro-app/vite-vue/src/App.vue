@@ -14,6 +14,10 @@
       </nav>
     </header>
 
+    <!--
+      子应用壳只负责统一导航和布局。
+      真正的业务内容通过 router-view 注入，便于各页面按需懒加载。
+    -->
     <main class="sub-app-shell__main">
       <router-view />
     </main>

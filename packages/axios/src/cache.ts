@@ -8,6 +8,7 @@ import type { CacheStore, CacheStoreRecord, InternalRequestConfig } from "./type
 export class MemoryCacheStore implements CacheStore {
   private readonly store = new Map<string, CacheStoreRecord>();
 
+  // 直接暴露最小 CRUD 接口，便于未来替换为自定义存储实现。
   get(key: string) {
     return this.store.get(key);
   }
@@ -31,6 +32,9 @@ export class MemoryCacheStore implements CacheStore {
 
 /**
  * 统一序列化对象，保证同一份参数生成稳定 key。
+ *
+ * 这里不直接使用 JSON.stringify 的原因是对象 key 顺序可能不稳定，
+ * 导致语义相同的 params/data 生成不同缓存签名。
  */
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== "object") {
@@ -49,6 +53,8 @@ function stableStringify(value: unknown): string {
 
 /**
  * 生成缓存 key，默认会将 method、url、params、data、baseURL 纳入签名。
+ *
+ * 这样可以覆盖大多数 GET/HEAD 场景，避免仅凭 url 缓存导致不同查询参数互相污染。
  */
 export function defaultCacheKeyGenerator(config: InternalRequestConfig) {
   return stableStringify({
@@ -61,7 +67,11 @@ export function defaultCacheKeyGenerator(config: InternalRequestConfig) {
 }
 
 /**
- * 清理过期缓存，命中时返回响应副本，避免外部代码直接修改缓存对象。
+ * 读取缓存。
+ *
+ * 读取时会顺带做两件事：
+ * 1. 检查是否过期，过期则立即清理。
+ * 2. 返回响应副本，避免调用方意外改坏缓存中的原始对象。
  */
 export function readCache(store: CacheStore, key: string): AxiosResponse | undefined {
   const record = store.get(key);
@@ -81,6 +91,8 @@ export function readCache(store: CacheStore, key: string): AxiosResponse | undef
 
 /**
  * 将响应写入缓存。
+ *
+ * 缓存时同样先做 clone，确保后续业务层修改 response.data 不会反向污染缓存池。
  */
 export function writeCache(store: CacheStore, key: string, response: AxiosResponse, ttl: number) {
   store.set(key, {
@@ -89,6 +101,11 @@ export function writeCache(store: CacheStore, key: string, response: AxiosRespon
   });
 }
 
+/**
+ * 深拷贝 axios 响应对象中常见的可变字段。
+ *
+ * 这里重点处理 data、headers 和 config.headers，已经足够覆盖缓存读写的主要风险点。
+ */
 function cloneResponse<T = unknown>(response: AxiosResponse<T>): AxiosResponse<T> {
   return {
     ...response,
@@ -101,6 +118,12 @@ function cloneResponse<T = unknown>(response: AxiosResponse<T>): AxiosResponse<T
   };
 }
 
+/**
+ * 对任意可序列化值做副本复制。
+ *
+ * 优先使用 structuredClone，回退到 JSON 方案；
+ * 若值本身不可序列化，则退回原值，避免因缓存辅助逻辑打断主流程。
+ */
 function cloneValue<T>(value: T): T {
   if (typeof globalThis.structuredClone === "function") {
     return globalThis.structuredClone(value);

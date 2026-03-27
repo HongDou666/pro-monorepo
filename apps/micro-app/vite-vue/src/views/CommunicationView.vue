@@ -16,6 +16,12 @@ import {
 
 const receivedData = ref<string>("");
 
+/**
+ * 主动向主应用发送消息。
+ *
+ * 发送前必须先判断当前是否运行在 micro-app 容器中，
+ * 否则独立运行时 window.microApp 不存在，会直接报错。
+ */
 function sendDataToMain() {
   if (!isMicroAppRuntime(window)) {
     message.warning("当前不是 micro-app 运行环境，无法回传主应用数据");
@@ -31,6 +37,11 @@ function sendDataToMain() {
   message.success("数据已发送到主应用");
 }
 
+/**
+ * 处理主应用下发的数据。
+ *
+ * 这里统一格式化后再显示，便于观察标准消息结构中的 source、type、traceId 等字段。
+ */
 function handleMainAppData(data: Record<PropertyKey, unknown>) {
   console.log("[子应用] 收到主应用数据:", data);
   receivedData.value = formatMicroAppMessage(data);
@@ -42,6 +53,7 @@ onMounted(() => {
     return;
   }
 
+  // autoTrigger=true 可在子应用后挂载时立即拿到主应用最近一次下发的数据。
   window.microApp.addDataListener(handleMainAppData, true);
 });
 
@@ -50,6 +62,7 @@ onUnmounted(() => {
     return;
   }
 
+  // 卸载时移除监听，避免同一页面反复进入后重复收到消息。
   window.microApp.removeDataListener(handleMainAppData);
 });
 </script>

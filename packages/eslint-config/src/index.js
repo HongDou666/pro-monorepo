@@ -7,6 +7,18 @@ import eslintPluginVue from "eslint-plugin-vue";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
+/**
+ * 共享 ESLint 配置工厂。
+ *
+ * 这个包的职责不是直接导出单一配置，而是围绕不同消费场景提供配置片段：
+ * 1. Monorepo 根配置：统一约束整个仓库。
+ * 2. Vue 应用配置：适配独立 Vue 子项目。
+ * 3. React 应用配置：适配独立 React 子项目。
+ *
+ * 这样主仓库和各个子应用都能共享同一套规则来源，同时保留场景化覆盖能力。
+ */
+
+// 仓库级统一忽略项，尽量把构建产物、缓存和生成文件排除在 lint 之外。
 export const sharedIgnores = [
   "**/dist/**",
   "**/node_modules/**",
@@ -20,6 +32,12 @@ export const sharedIgnores = [
   "**/.cache/**"
 ];
 
+/**
+ * 与技术栈无关的通用规则。
+ *
+ * 这部分优先约束 JavaScript 基础质量和代码风格，
+ * 保证无论是 Vue、React 还是脚本文件都先遵守同一层基线。
+ */
 const sharedRules = {
   ...eslint.configs.recommended.rules,
   "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
@@ -103,6 +121,13 @@ const sharedRules = {
   "yield-star-spacing": ["error", "after"]
 };
 
+/**
+ * TypeScript 通用规则。
+ *
+ * 这里的取舍偏向“工程实用性”：
+ * - 保留 no-unused-vars、类型导入、命名约定等高价值约束。
+ * - 关闭部分过于严格、会显著增加样板代码的规则。
+ */
 const sharedTypescriptRules = {
   "no-unused-vars": "off",
   "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
@@ -171,6 +196,12 @@ const sharedTypescriptRules = {
   ]
 };
 
+/**
+ * Vue SFC 通用规则。
+ *
+ * 重点约束模板结构、属性顺序和组件命名风格，
+ * 让不同包和应用中的 Vue 文件保持一致的阅读体验。
+ */
 const sharedVueRules = {
   "vue/no-unused-components": "warn",
   "vue/no-unused-vars": ["error", { ignorePattern: "^_" }],
@@ -241,6 +272,12 @@ const sharedVueRules = {
   "vue/no-setup-props-destructure": "off"
 };
 
+/**
+ * 创建 parserOptions。
+ *
+ * tsconfigRootDir 会影响类型感知规则解析项目边界，
+ * jsx 则用于 React/TSX 或需要 JSX 语法支持的场景。
+ */
 function createParserOptions(tsconfigRootDir, jsx = false) {
   return {
     tsconfigRootDir,
@@ -254,6 +291,12 @@ function createParserOptions(tsconfigRootDir, jsx = false) {
   };
 }
 
+/**
+ * 创建共享 languageOptions。
+ *
+ * 这里统一合并浏览器、Node 和 ES 全局变量，
+ * 因为 monorepo 中同时存在应用代码、构建脚本和配置文件。
+ */
 function createSharedLanguageOptions({ tsconfigRootDir, globalEntries = {}, jsx = false }) {
   return {
     ecmaVersion: "latest",
@@ -268,6 +311,12 @@ function createSharedLanguageOptions({ tsconfigRootDir, globalEntries = {}, jsx 
   };
 }
 
+/**
+ * 为 eslint.config.js 本身补充运行时全局变量。
+ *
+ * flat config 文件通常运行在 Node 环境中，但有时会直接使用 URL 等全局对象，
+ * 这里单独做覆盖，避免对普通源码文件造成额外影响。
+ */
 function createEslintConfigFileOverride() {
   return {
     files: ["eslint.config.js"],
@@ -280,6 +329,18 @@ function createEslintConfigFileOverride() {
   };
 }
 
+/**
+ * 创建仓库级 monorepo ESLint 配置。
+ *
+ * 组合顺序有明确意图：
+ * 1. 先设置 ignores 和基础 parserOptions。
+ * 2. 再应用通用 JS 规则。
+ * 3. 叠加 TypeScript 推荐规则和仓库自己的 TS 约束。
+ * 4. 最后接入 Vue 推荐规则与 Prettier 对齐层。
+ *
+ * autoImportGlobals 用于把自动导入生成的全局符号声明给 ESLint，
+ * 避免像 ref、computed 这类 API 被误报未定义。
+ */
 export function createMonorepoEslintConfig({ tsconfigRootDir, autoImportGlobals = {} }) {
   return [
     {
@@ -333,6 +394,14 @@ export function createMonorepoEslintConfig({ tsconfigRootDir, autoImportGlobals 
   ];
 }
 
+/**
+ * 创建 Vue 应用专用 ESLint 配置。
+ *
+ * 这套配置相较 monorepo 根配置更轻：
+ * - 聚焦单个 Vue 应用开发体验。
+ * - 对部分模板规则做更温和的放宽。
+ * - 保留 TypeScript 和基础代码质量约束。
+ */
 export function createVueAppEslintConfig({ tsconfigRootDir, globalEntries = {} }) {
   return [
     {
@@ -395,6 +464,13 @@ export function createVueAppEslintConfig({ tsconfigRootDir, globalEntries = {} }
   ];
 }
 
+/**
+ * 创建 React 应用专用 ESLint 配置。
+ *
+ * 在 TypeScript 基线之上，额外注入：
+ * 1. react-hooks 规则，保证 hooks 使用合法。
+ * 2. react-refresh 规则，约束热更新边界。
+ */
 export function createReactAppEslintConfig({ tsconfigRootDir }) {
   return [
     {

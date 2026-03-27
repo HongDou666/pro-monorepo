@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ProInputStorage, ProRangePicker } from "@pro-monorepo/components";
 
+// 组件演示页保持受控状态，便于观察共享组件在子应用中的真实输出。
 const dateRange = ref<[string, string] | null>(null);
 const operationLogs = ref<string[]>([
   "已接入 @pro-monorepo/components 共享组件包",
   "你可以在这里验证组件在子应用中的真实表现"
 ]);
 
+// 所有组件事件都归并成统一日志流，方便演示和回归验证。
 function pushLog(content: string) {
   operationLogs.value = [content, ...operationLogs.value].slice(0, 6);
 }
@@ -23,6 +25,7 @@ function handleStorageError(errorMessage: string) {
   pushLog(`操作提示: ${errorMessage}`);
 }
 
+// 日期选择变化后直接写日志，展示组件事件回调的消费方式。
 function handleRangeChange(value: [string, string] | null) {
   pushLog(value ? `选择日期范围: ${value[0]} ~ ${value[1]}` : "已清空日期范围");
 }

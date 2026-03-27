@@ -7,14 +7,22 @@ import {
 } from "../api/demo";
 import { cancelVueMicroRequests } from "../api/http";
 
+// 保存最近一次接口响应，既用于演示，也便于肉眼验证缓存前后结果是否一致。
 const responseData = ref<VueMicroHttpDemoResponse | null>(null);
+// 只保留最近几条操作日志，避免演示页无限累积内容。
 const requestLogs = ref<string[]>(["Vue 子应用可通过 src/api/http.ts 统一发起请求"]);
 const loading = ref(false);
 
+// 把日志插入顶部，更适合观察当前动作对应的最新状态。
 function appendLog(content: string) {
   requestLogs.value = [content, ...requestLogs.value].slice(0, 6);
 }
 
+/**
+ * 加载演示接口。
+ *
+ * useCache=true 时使用更短的局部缓存 TTL，方便在页面上快速验证缓存命中行为。
+ */
 async function loadDemo(useCache: boolean) {
   loading.value = true;
 
@@ -36,6 +44,7 @@ async function loadDemo(useCache: boolean) {
   }
 }
 
+// 手动取消按钮主要用于演示实例级 cancelAllRequests 能力。
 function cancelRequests() {
   cancelVueMicroRequests("Vue micro http demo canceled manually");
   appendLog(`已取消未完成请求，当前待处理 ${getVueMicroPendingRequestCount()}`);

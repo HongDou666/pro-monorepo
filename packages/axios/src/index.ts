@@ -47,6 +47,18 @@ export function createHttpClient(options: ProAxiosOptions = {}): ProAxiosInstanc
   const concurrencyController = new RequestConcurrencyController(resolvedOptions.concurrency.maxConcurrent);
   const controllers = new Map<string, AbortController>();
 
+  /**
+   * 请求总入口。
+   *
+   * 执行顺序固定为：
+   * 1. 生成 requestId 与中断控制器。
+   * 2. 合并运行时配置与实例默认配置。
+   * 3. 优先尝试读取缓存，命中后直接返回。
+   * 4. 如启用并发控制，则先进入并发队列。
+   * 5. 发起真实请求并按策略重试。
+   * 6. 成功响应按需写入缓存。
+   * 7. 无论成功失败都清理 requestId 关联的控制器。
+   */
   async function request<T = unknown, D = unknown>(config: InternalRequestConfig<D>) {
     const requestId = config.runtimeOptions?.requestId ?? createRequestId();
     const controller = new AbortController();
@@ -90,16 +102,34 @@ export function createHttpClient(options: ProAxiosOptions = {}): ProAxiosInstanc
     }
   }
 
+  /**
+   * 取消当前实例下所有未完成请求。
+   *
+   * 包含两类任务：
+   * 1. 已经发出但尚未结束的请求。
+   * 2. 因并发上限而仍在等待队列中的请求。
+   */
   function cancelAllRequests(reason = "All unfinished requests have been canceled") {
     controllers.forEach(controller => controller.abort(reason));
     concurrencyController.cancelPending(reason);
     controllers.clear();
   }
 
+  /**
+   * 清空整个缓存池。
+   *
+   * 这是实例级别操作，适合登录态切换、租户切换或调试时使用。
+   */
   function clearCache() {
     resolvedOptions.cache.store.clear();
   }
 
+  /**
+   * 按缓存 key 或请求配置删除单条缓存。
+   *
+   * 传入请求配置时会按照当前实例的 generateKey 规则计算 key，
+   * 避免调用方手写 key 导致删除不一致。
+   */
   function deleteCache(configOrKey: string | InternalRequestConfig) {
     const cacheKey = typeof configOrKey === "string" ? configOrKey : resolvedOptions.cache.generateKey(configOrKey);
 
@@ -162,6 +192,7 @@ async function executeWithRetry<T = unknown, D = unknown>(
 ) {
   let attempt = 0;
 
+  // 统一在这里处理重试，让 request 主流程保持线性可读。
   while (true) {
     try {
       return await axiosInstance.request<T, AxiosResponse<T, D>, D>(config);
@@ -198,6 +229,7 @@ function shouldRetryRequest(
   },
   retryOptions: ResolvedRetryOptions
 ) {
+  // 是否重试由“次数、方法、取消状态、自定义判断”四层共同决定。
   const method = normalizeMethod(context.config.method);
 
   if (context.attempt > retryOptions.retries) {
@@ -235,6 +267,11 @@ function shouldUseCache(config: InternalRequestConfig, cacheOptions: ResolvedCac
   return cacheOptions.enabled && cacheOptions.methods.includes(normalizeMethod(config.method));
 }
 
+/**
+ * 将用户传入的可选配置标准化为完整配置对象。
+ *
+ * 这样后续执行链只需要消费 resolvedOptions，避免每个阶段重复做空值判断。
+ */
 function resolveOptions(options: ProAxiosOptions): ResolvedProAxiosOptions {
   return {
     axiosConfig: options.axiosConfig ?? {},
@@ -244,6 +281,11 @@ function resolveOptions(options: ProAxiosOptions): ResolvedProAxiosOptions {
   };
 }
 
+/**
+ * 将单次请求的运行时覆盖项合并到实例默认配置。
+ *
+ * 这里显式支持传入 false 关闭单项能力，便于业务按请求粒度禁用缓存、重试或并发控制。
+ */
 function resolveRuntimeConfig(runtimeOptions: RequestRuntimeOptions | undefined, options: ResolvedProAxiosOptions) {
   return {
     concurrency:
@@ -296,6 +338,12 @@ function resolveCacheOptions(options: CacheOptions | undefined): ResolvedCacheOp
   };
 }
 
+/**
+ * 统一补齐请求元信息。
+ *
+ * 当前会规范化 method、合并请求头并保证 signal 一定可用，
+ * 这样下游重试、缓存、并发控制都能依赖稳定字段工作。
+ */
 function mergeConfigWithMeta<D>(config: InternalRequestConfig<D>, meta: RequestMeta): InternalRequestConfig<D> {
   return {
     ...config,
@@ -305,6 +353,11 @@ function mergeConfigWithMeta<D>(config: InternalRequestConfig<D>, meta: RequestM
   };
 }
 
+/**
+ * 将各种 headers 输入形态规整成 AxiosHeaders，并注入 x-request-id。
+ *
+ * x-request-id 可用于网关追踪、日志检索和跨服务链路排查。
+ */
 function mergeHeaders(headers: AxiosRequestConfig["headers"], requestId: string) {
   const mergedHeaders = new AxiosHeaders();
 
@@ -329,6 +382,14 @@ function mergeHeaders(headers: AxiosRequestConfig["headers"], requestId: string)
   return mergedHeaders;
 }
 
+/**
+ * 组合内部 controller 与调用方传入的 signal。
+ *
+ * 目标是保证“任一来源取消都能终止请求”：
+ * - 实例批量取消
+ * - 调用方主动取消
+ * - 并发等待期间取消
+ */
 function composeAbortSignal(signalA: AbortSignal, signalB?: GenericAbortSignal) {
   if (!signalB) {
     return signalA;
@@ -361,6 +422,11 @@ function composeAbortSignal(signalA: AbortSignal, signalB?: GenericAbortSignal) 
   return controller.signal;
 }
 
+/**
+ * 将 axios 兼容的 GenericAbortSignal 兜底转换为标准 AbortSignal。
+ *
+ * 某些运行环境只暴露最小事件接口，因此这里做一次兼容层收口。
+ */
 function toAbortSignal(signal: GenericAbortSignal) {
   if (signal instanceof AbortSignal) {
     return signal;
@@ -399,6 +465,7 @@ function isHeaderValue(value: unknown): value is string | number | boolean | str
   );
 }
 
+// requestId 保持可读而非追求强随机，主要用于排障和日志串联。
 function createRequestId() {
   return `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -412,6 +479,7 @@ function wait(ms: number, signal?: AbortSignal) {
     return Promise.resolve();
   }
 
+  // 重试等待阶段也响应取消，避免页面离开后仍继续排队重试。
   return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
       signal?.removeEventListener("abort", onAbort);

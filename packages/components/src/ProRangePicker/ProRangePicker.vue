@@ -4,6 +4,15 @@ import { DatePicker } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 
+/**
+ * 带日期跨度限制的范围选择组件。
+ *
+ * 相比直接使用 antd 的 RangePicker，这里额外提供：
+ * 1. dayRange 约束，限制用户最多选择多少天。
+ * 2. 字符串型 v-model，方便直接和查询参数、表单值对接。
+ * 3. 标准 change 事件，同时把格式化结果和原始 dayjs 对象一起暴露。
+ */
+
 /** Props 定义 */
 const props = withDefaults(
   defineProps<{
@@ -43,6 +52,7 @@ const dateValue = ref<[Dayjs, Dayjs] | null>(null);
 watch(
   () => props.modelValue,
   newVal => {
+    // 组件内部始终以 dayjs 对象工作，对外再转换成字符串，兼顾 UI 和业务层使用习惯。
     if (newVal && newVal[0] && newVal[1]) {
       dateValue.value = [dayjs(newVal[0]), dayjs(newVal[1])];
     } else {
@@ -54,6 +64,7 @@ watch(
 
 /** 禁用日期函数 */
 const disabledDate = (current: Dayjs) => {
+  // 未选中起始日期前不做限制，让用户可以自由决定第一天。
   if (!dateValue.value || !dateValue.value[0]) {
     return false;
   }
@@ -61,7 +72,7 @@ const disabledDate = (current: Dayjs) => {
   const startDate = dateValue.value[0];
   const diffDays = Math.abs(current.diff(startDate, "day"));
 
-  // 限制选择范围
+  // 一旦选中起点，后续可选日期范围会被限制在 dayRange 内。
   return diffDays > props.dayRange;
 };
 
@@ -70,11 +81,13 @@ const handleChange = (dates: [Dayjs, Dayjs] | null) => {
   dateValue.value = dates;
 
   if (dates && dates[0] && dates[1]) {
+    // 对外统一输出格式化字符串，避免业务层重复处理 dayjs -> string 的转换。
     const result: [string, string] = [dates[0].format(props.format), dates[1].format(props.format)];
 
     emit("update:modelValue", result);
     emit("change", result, dates);
   } else {
+    // 清空时同时清掉 v-model 和 change 事件值，保持受控语义一致。
     emit("update:modelValue", null);
     emit("change", null, null);
   }
@@ -82,6 +95,7 @@ const handleChange = (dates: [Dayjs, Dayjs] | null) => {
 
 /** 处理日历面板变化（用于限制日期范围） */
 const handleCalendarChange = (dates: [Dayjs, Dayjs] | null) => {
+  // 用户只选中起始日期时也要先记录下来，disabledDate 才能据此限制后续日期。
   if (dates && dates[0]) {
     dateValue.value = dates;
   }
@@ -90,6 +104,10 @@ const handleCalendarChange = (dates: [Dayjs, Dayjs] | null) => {
 
 <template>
   <div class="pro-range-picker">
+    <!--
+      这里直接复用 antd RangePicker 的外观与交互，
+      组件自身主要补充范围限制和字符串值同步这两层能力。
+    -->
     <DatePicker.RangePicker
       :value="dateValue"
       :disabled-date="disabledDate"

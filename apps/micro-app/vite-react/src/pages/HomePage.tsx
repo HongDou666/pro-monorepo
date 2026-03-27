@@ -1,3 +1,9 @@
+/**
+ * React 子应用首页。
+ *
+ * 该页刻意保持轻量，用来承载“首屏尽快可见”的目标，
+ * 同时向使用者解释其他重量级页面为何采用懒加载。
+ */
 function HomePage() {
   return (
     <section className="home-page">

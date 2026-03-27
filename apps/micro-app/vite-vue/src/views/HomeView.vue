@@ -9,6 +9,9 @@
       <p class="home-view__desc home-view__desc--extra">
         现在还新增了“请求示例”页面，用于演示 Vue 子应用复用共享 axios 公共包。
       </p>
+      <p class="home-view__desc home-view__desc--extra">
+        这个首页本身刻意保持简单，主要用于强调“子应用入口尽量轻量化”的微前端实践。
+      </p>
     </div>
   </section>
 </template>

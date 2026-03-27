@@ -2,7 +2,9 @@ import NProgress from "nprogress";
 import "nprogress/nprogress.css";
 
 /**
- * 初始化 NProgress 进度条
+ * 初始化全局进度条配置。
+ *
+ * 这里仅做一次 configure，真正的 start/done 调用由路由守卫控制。
  */
 export function setupNProgress(): void {
   NProgress.configure({

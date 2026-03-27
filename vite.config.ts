@@ -6,12 +6,20 @@ import Components from "unplugin-vue-components/vite";
 import { AntDesignVueResolver } from "unplugin-vue-components/resolvers";
 import { fileURLToPath, URL } from "node:url";
 
+/**
+ * 主应用 Vite 配置。
+ *
+ * 重点在三件事：
+ * 1. 识别 micro-app 自定义元素，避免被 Vue 当成本地组件递归解析。
+ * 2. 接入 UnoCSS、自动导入与组件自动注册，提高样板代码复用率。
+ * 3. 通过别名直接指向 packages 源码，便于主应用开发时联调本地包。
+ */
 export default defineConfig({
   plugins: [
     vue({
       template: {
         compilerOptions: {
-          /* 这个报错不像子应用请求失败，更像主应用页面自身在无限递归渲染。你这个页面文件名就是 MicroApp.vue，而模板里又写了 <micro-app>，Vue 会把它优先当成“当前组件自引用”，这正好对应 runtime-core 的栈溢出 */
+          // 告诉 Vue: <micro-app> 是原生自定义元素，不要按 Vue 组件去解析。
           isCustomElement: tag => tag === "micro-app"
         }
       }

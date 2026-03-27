@@ -7,14 +7,22 @@ import {
 } from "@/api/demo";
 import { cancelMainHttpRequests } from "@/api/http";
 
+// 页面上展示最近一次接口响应，用于验证主应用请求实例是否工作正常。
 const httpDemo = ref<MainHttpDemoResponse | null>(null);
+// 日志只保留最近几条，避免演示页无限累积文本。
 const httpLogs = ref<string[]>(["主应用请求实例已创建，可直接从 @/api/http 与 @/api/demo 复用"]);
 const isLoadingDemo = ref(false);
 
+// 把新日志插到顶部，更符合“最近事件优先看”的调试习惯。
 function pushLog(content: string) {
   httpLogs.value = [content, ...httpLogs.value].slice(0, 6);
 }
 
+/**
+ * 读取演示接口。
+ *
+ * 通过切换 useCache 可以直观看到同一接口在“走缓存”和“绕过缓存”两种模式下的表现。
+ */
 async function handleLoadDemo(useCache: boolean) {
   isLoadingDemo.value = true;
   try {
@@ -33,6 +41,7 @@ async function handleLoadDemo(useCache: boolean) {
   }
 }
 
+// 手动取消按钮用于演示实例级取消能力，不区分由哪个页面发起。
 function handleCancelRequests() {
   cancelMainHttpRequests("Home demo canceled manually");
   pushLog(`已取消主应用未完成请求，当前待处理 ${getMainPendingRequestCount()}`);

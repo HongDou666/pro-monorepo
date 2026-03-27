@@ -2,9 +2,11 @@ import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 
+// 该脚本用于“安全提交”：在进入交互式 commitizen 之前先备份当前工作区改动。
 const repoRoot = process.cwd();
 
 function runGit(args, options = {}) {
+  // 统一通过同步 git 命令获取瞬时状态，避免备份过程中状态被异步打乱。
   const result = spawnSync("git", args, {
     cwd: repoRoot,
     encoding: "utf8",
@@ -20,6 +22,7 @@ function runGit(args, options = {}) {
 }
 
 function getChangedPaths() {
+  // 同时覆盖未暂存、已暂存和未跟踪文件，尽可能完整保存当前工作区现场。
   const groups = [
     runGit(["diff", "--name-only"]),
     runGit(["diff", "--cached", "--name-only"]),
@@ -49,12 +52,13 @@ async function copySnapshotFiles(backupDir, changedPaths) {
     try {
       await copyFile(sourcePath, targetPath);
     } catch {
-      // 文件可能已被删除，这种情况由 diff/metadata 负责记录。
+      // 文件可能已被删除；此时 patch 和 meta 已足够恢复，不必让备份流程失败。
     }
   }
 }
 
 function createBackupName() {
+  // 直接使用 ISO 时间戳，既保证有序，也方便人工定位某次提交尝试。
   return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
@@ -67,6 +71,7 @@ async function createBackup() {
 
   await mkdir(backupDir, { recursive: true });
 
+  // 同时保存工作区 patch、暂存区 patch、状态元信息和文件快照，最大化恢复成功率。
   const [workingDiff, stagedDiff, statusOutput, headSha] = [
     runGit(["diff", "--binary", "--no-ext-diff"]),
     runGit(["diff", "--cached", "--binary", "--no-ext-diff"]),
@@ -105,6 +110,7 @@ function runCommitizen() {
   }
 
   return new Promise(resolveExitCode => {
+    // 这里保留交互式 stdio，让开发者仍然使用熟悉的 commitizen 体验。
     const child = spawn("pnpm", ["exec", "git-cz"], {
       cwd: repoRoot,
       stdio: "inherit",
@@ -126,6 +132,7 @@ async function main() {
   const exitCode = await runCommitizen();
 
   if (exitCode === 0) {
+    // 提交成功后立即删除备份，避免 .git 内部长期堆积无效快照。
     await rm(backupDir, { recursive: true, force: true });
     process.exit(0);
   }

@@ -2,7 +2,12 @@ import { getRollupConfigs } from "./buildBase.js";
 import { watch } from "rollup";
 
 /**
- * 启动监听模式构建
+ * 启动包构建监听模式。
+ *
+ * 与 build.js 的区别在于：
+ * 1. 不压缩输出，提升增量构建速度。
+ * 2. 使用 Rollup watch 持续监听源码变化。
+ * 3. 通过事件日志反馈当前构建阶段。
  */
 async function dev() {
   const configs = await getRollupConfigs();
@@ -12,6 +17,7 @@ async function dev() {
   for (const name in configs) {
     const config = configs[name];
 
+    // 每个包单独创建 watcher，方便定位具体是哪个包触发重建。
     const watcher = watch(
       config.output.map(output => ({
         input: config.input,

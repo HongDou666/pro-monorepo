@@ -22,6 +22,7 @@ const DEFAULT_SUCCESS_CODES = [0, 200, "0", "200"];
  */
 export function setupHttpInterceptors(client: ProAxiosInstance, options: HttpInterceptorOptions = {}) {
   if (configuredInstances.has(client.axios)) {
+    // 避免同一个 axios 实例重复挂载拦截器，造成 token 注入或错误提示执行多次。
     return client;
   }
 
@@ -31,6 +32,10 @@ export function setupHttpInterceptors(client: ProAxiosInstance, options: HttpInt
     const typedConfig = config as InternalRequestConfig;
     const token = options.getToken?.();
 
+    // 满足以下条件时才自动注入 token：
+    // 1. 当前能拿到 token。
+    // 2. 单次请求没有显式 skipAuth。
+    // 3. shouldAttachToken 没有主动拒绝。
     if (token && !typedConfig.interceptorOptions?.skipAuth && (options.shouldAttachToken?.(typedConfig) ?? true)) {
       const headers = cloneHeaders(config.headers);
       const tokenHeaderName = options.tokenHeaderName ?? "Authorization";
@@ -53,6 +58,14 @@ export function setupHttpInterceptors(client: ProAxiosInstance, options: HttpInt
   return client;
 }
 
+/**
+ * 处理 HTTP 200 但可能包含业务码的响应。
+ *
+ * 这里会区分三种情况：
+ * 1. 不识别为业务包结构，直接透传。
+ * 2. 识别为成功业务包，根据配置决定是否自动解包 data。
+ * 3. 识别为失败业务包，统一提示并抛出业务错误。
+ */
 function handleResponseSuccess<T = unknown>(response: AxiosResponse<T>, options: HttpInterceptorOptions) {
   const typedConfig = response.config as InternalRequestConfig;
 
@@ -71,6 +84,7 @@ function handleResponseSuccess<T = unknown>(response: AxiosResponse<T>, options:
       (typedConfig.interceptorOptions?.unwrapBusinessData ?? options.unwrapBusinessData ?? true) &&
       "data" in payload
     ) {
+      // 保留原始 response 结构，仅替换 data，方便调用方继续访问 headers/status。
       return {
         ...response,
         data: payload.data as T
@@ -99,6 +113,12 @@ function handleResponseSuccess<T = unknown>(response: AxiosResponse<T>, options:
   return Promise.reject(new ProAxiosBusinessError(errorMessage, payload, response));
 }
 
+/**
+ * 处理 HTTP 层错误。
+ *
+ * 取消请求属于正常控制流，不在这里弹错；
+ * 其他网络错误、超时和状态码错误则统一映射文案。
+ */
 function handleResponseError(error: unknown, options: HttpInterceptorOptions) {
   if (!axios.isAxiosError(error)) {
     return Promise.reject(error);
@@ -129,6 +149,11 @@ function handleResponseError(error: unknown, options: HttpInterceptorOptions) {
   return Promise.reject(error);
 }
 
+/**
+ * 兼容不同 headers 形态，统一克隆为 AxiosHeaders。
+ *
+ * 这样后续 token 注入和 header 判断都可以走同一套 API。
+ */
 function cloneHeaders(headers: InternalRequestConfig["headers"]) {
   const mergedHeaders = new AxiosHeaders();
   const iterableHeaders = headers as {
@@ -152,6 +177,7 @@ function cloneHeaders(headers: InternalRequestConfig["headers"]) {
   return mergedHeaders;
 }
 
+// tokenPrefix=false 表示完全禁用前缀拼接，适合某些自定义鉴权头格式。
 function formatTokenValue(token: string, tokenPrefix: HttpInterceptorOptions["tokenPrefix"]) {
   if (tokenPrefix === false) {
     return token;
@@ -162,6 +188,7 @@ function formatTokenValue(token: string, tokenPrefix: HttpInterceptorOptions["to
   return `${prefix} ${token}`.trim();
 }
 
+// 默认把带 code 或 success 字段的对象视为业务响应包。
 function isBusinessResponse(payload: unknown, options: HttpInterceptorOptions): payload is BusinessResponse {
   if (options.isBusinessResponse) {
     return options.isBusinessResponse(payload);
@@ -170,6 +197,7 @@ function isBusinessResponse(payload: unknown, options: HttpInterceptorOptions): 
   return Boolean(payload && typeof payload === "object" && ("code" in payload || "success" in payload));
 }
 
+// success 优先级高于 code，兼容更多后端包结构。
 function isBusinessSuccess(payload: BusinessResponse, options: HttpInterceptorOptions) {
   if (options.isBusinessSuccess) {
     return options.isBusinessSuccess(payload);
@@ -182,16 +210,24 @@ function isBusinessSuccess(payload: BusinessResponse, options: HttpInterceptorOp
   return payload.code === undefined || DEFAULT_SUCCESS_CODES.includes(payload.code);
 }
 
+// 未授权业务码默认为 401，也允许应用层扩展成自定义业务码集合。
 function isUnauthorizedBusinessResponse(payload: BusinessResponse, options: HttpInterceptorOptions) {
   const unauthorizedCodes = options.unauthorizedCodes ?? DEFAULT_UNAUTHORIZED_CODES;
 
   return payload.code !== undefined && unauthorizedCodes.includes(payload.code);
 }
 
+// 兼容 message 与 msg 两种常见字段名。
 function resolveBusinessMessage(payload: BusinessResponse, options: HttpInterceptorOptions) {
   return options.getBusinessMessage?.(payload) ?? payload.message ?? payload.msg ?? "业务请求失败";
 }
 
+/**
+ * 默认 HTTP 错误文案映射。
+ *
+ * 只覆盖最常见、最有普适性的网络错误；
+ * 业务方如需更细粒度文案，可通过 mapHttpErrorMessage 覆盖。
+ */
 function defaultHttpErrorMessage(error: AxiosError) {
   if (error.code === AxiosError.ERR_NETWORK) {
     return "网络异常，请检查网络连接";
@@ -222,6 +258,7 @@ function defaultHttpErrorMessage(error: AxiosError) {
   return error.message || "请求失败，请稍后重试";
 }
 
+// 仅允许 axios headers 能接受的简单值类型进入克隆流程。
 function isHeaderValue(value: unknown): value is string | number | boolean | string[] {
   return (
     typeof value === "string" ||
@@ -231,6 +268,13 @@ function isHeaderValue(value: unknown): value is string | number | boolean | str
   );
 }
 
+/**
+ * 业务错误对象。
+ *
+ * 与普通 AxiosError 的区别在于：
+ * - HTTP 请求本身成功到达服务端。
+ * - 失败来自业务码判断而不是网络层。
+ */
 class ProAxiosBusinessError<T = unknown> extends Error {
   readonly code: BusinessResponse<T>["code"];
   readonly payload: BusinessResponse<T>;

@@ -2,8 +2,10 @@
 import { ref } from "vue";
 import { ProRangePicker } from "@pro-monorepo/components";
 
+// 演示组件仍使用标准 v-model，方便验证组件库对外 API 是否符合 Vue 习惯。
 const dateRange = ref<[string, string] | null>(null);
 
+// 这里仅打印结果，实际业务中通常会联动查询参数或表单状态。
 const handleChange = (value: [string, string] | null) => {
   console.log("选中的时间范围:", value);
 };

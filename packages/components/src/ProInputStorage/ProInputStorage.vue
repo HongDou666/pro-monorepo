@@ -3,6 +3,15 @@ import { ref } from "vue";
 import { Input, Button, Radio, message } from "ant-design-vue";
 import { setStorage, removeStorage } from "@pro-monorepo/utils";
 
+/**
+ * 输入式存储操作组件。
+ *
+ * 设计目标：
+ * 1. 用最少字段完成 localStorage / sessionStorage 的设置与删除。
+ * 2. 将输入校验、提示文案和事件回调收口在组件内。
+ * 3. 对外暴露清晰的 set/remove/error 事件，便于业务做埋点或二次提示。
+ */
+
 /** 操作模式 */
 type ModeType = "set" | "remove";
 
@@ -56,6 +65,7 @@ const handleSet = () => {
   const key = keyInput.value.trim();
   const value = valueInput.value.trim();
 
+  // key 为空时直接终止，避免写入空键污染浏览器存储空间。
   if (!key) {
     message.warning("请输入键名");
     emit("error", "请输入键名");
@@ -71,11 +81,12 @@ const handleSet = () => {
   }
 
   try {
+    // 组件只负责字符串值输入；更复杂的数据结构可由业务层自行序列化后传入。
     setStorage(key, value, { type: props.storageType });
     message.success("存储成功");
     emit("set", key, value);
 
-    // 清空输入
+    // 操作成功后清空输入，便于连续演示和避免用户误以为还未提交。
     keyInput.value = "";
     valueInput.value = "";
   } catch {
@@ -90,6 +101,7 @@ const handleSet = () => {
 const handleRemove = () => {
   const key = keyInput.value.trim();
 
+  // 删除动作只需要 key，因此 remove 模式下不会要求 valueInput。
   if (!key) {
     message.warning("请输入键名");
     emit("error", "请输入键名");
@@ -102,7 +114,7 @@ const handleRemove = () => {
     message.success("删除成功");
     emit("remove", key);
 
-    // 清空输入
+    // 删除后保留空白态，避免连续误删同一个 key。
     keyInput.value = "";
   } catch {
     const errorMsg = "删除失败";
@@ -114,6 +126,7 @@ const handleRemove = () => {
 
 /** 处理按钮点击 */
 const handleClick = () => {
+  // 统一在这里分发动作，模板层只绑定一个按钮事件，降低分支复杂度。
   if (mode.value === "set") {
     handleSet();
   } else {
@@ -124,7 +137,8 @@ const handleClick = () => {
 /** 模式切换事件处理 */
 const handleModeChange = (e: { target: { value: ModeType } }) => {
   mode.value = e.target.value;
-  // 切换模式时清空输入
+
+  // 切换模式时清空输入，避免“删除模式误带旧 value”或“存储模式误复用旧 key/value”。
   keyInput.value = "";
   valueInput.value = "";
 };
@@ -132,7 +146,10 @@ const handleModeChange = (e: { target: { value: ModeType } }) => {
 
 <template>
   <div class="pro-input-storage">
-    <!-- 操作模式切换 -->
+    <!--
+      模式切换是可选能力。
+      某些业务只需要固定做 set 或 remove，这时可以通过 showModeSwitch 隐藏切换。
+    -->
     <div v-if="showModeSwitch" class="pro-input-storage__mode">
       <Radio.Group :value="mode" @change="handleModeChange">
         <Radio.Button value="set">{{ setButtonText }}</Radio.Button>
@@ -140,12 +157,11 @@ const handleModeChange = (e: { target: { value: ModeType } }) => {
       </Radio.Group>
     </div>
 
-    <!-- 输入区域 -->
+    <!-- 输入区根据 mode 动态裁剪字段，避免 remove 模式展示无意义的值输入框。 -->
     <div class="pro-input-storage__content">
-      <!-- 键名输入 -->
       <Input v-model:value="keyInput" :placeholder="keyPlaceholder" allow-clear class="pro-input-storage__key" />
 
-      <!-- 值输入（仅在存储模式显示） -->
+      <!-- value 只在 set 模式出现，因为删除动作不需要输入值。 -->
       <Input
         v-if="mode === 'set'"
         v-model:value="valueInput"
@@ -154,7 +170,7 @@ const handleModeChange = (e: { target: { value: ModeType } }) => {
         class="pro-input-storage__value"
       />
 
-      <!-- 操作按钮 -->
+      <!-- 按钮文案跟随当前模式变化，保持操作语义直观。 -->
       <Button type="primary" @click="handleClick">
         {{ mode === "set" ? setButtonText : removeButtonText }}
       </Button>

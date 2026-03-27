@@ -10,13 +10,20 @@ import { cancelReactMicroRequests } from "../api/http";
 
 function HttpPage() {
   const [loading, setLoading] = useState(false);
+  // 最近操作日志放在本地 state 中，便于观察缓存、取消和请求完成顺序。
   const [logs, setLogs] = useState<string[]>(["React 子应用可通过 src/api/http.ts 统一发起请求"]);
   const [responseData, setResponseData] = useState<ReactMicroHttpDemoResponse | null>(null);
 
+  // 统一日志入口，避免各操作分散维护 setState 细节。
   const appendLog = (content: string) => {
     setLogs(current => [content, ...current].slice(0, 6));
   };
 
+  /**
+   * 读取演示接口。
+   *
+   * 这里通过切换缓存开关，让共享请求包的运行时覆盖能力在页面上可见。
+   */
   const loadDemo = async (useCache: boolean) => {
     setLoading(true);
 
@@ -38,6 +45,7 @@ function HttpPage() {
     }
   };
 
+  // 手动取消按钮用于演示实例级 cancelAllRequests 能力。
   const cancelRequests = () => {
     cancelReactMicroRequests("React micro http demo canceled manually");
     appendLog(`已取消未完成请求，当前待处理 ${getReactMicroPendingRequestCount()}`);

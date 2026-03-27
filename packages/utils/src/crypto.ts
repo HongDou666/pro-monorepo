@@ -1,10 +1,17 @@
 /**
- * 加密解密工具
- * 支持 Base64、AES 加密解密
+ * 轻量加密与摘要工具。
+ *
+ * 注意：
+ * 1. Base64 仅是编码，不是安全加密。
+ * 2. XOR 仅适合演示或低安全要求场景。
+ * 3. 需要真正安全能力时，优先使用 Web Crypto API 分支。
  */
 
 /**
- * Base64 编码
+ * Base64 编码。
+ *
+ * 先通过 encodeURIComponent 处理 Unicode，再交给 btoa，
+ * 避免中文等非 ASCII 字符直接编码时报错。
  * @param str 要编码的字符串
  * @returns Base64 编码后的字符串
  */
@@ -23,7 +30,10 @@ export function base64Encode(str: string): string {
 }
 
 /**
- * Base64 解码
+ * Base64 解码。
+ *
+ * 解码后再通过 decodeURIComponent 还原 Unicode 字符，
+ * 与 base64Encode 保持成对行为。
  * @param str Base64 编码的字符串
  * @returns 解码后的字符串
  */
@@ -45,7 +55,9 @@ export function base64Decode(str: string): string {
 }
 
 /**
- * 简单加密（基于 XOR 异或算法）
+ * 简单加密（基于 XOR 异或算法）。
+ *
+ * 该算法仅用于轻量混淆，不提供现代密码学意义上的安全性。
  * @param str 要加密的字符串
  * @param key 加密密钥
  * @returns 加密后的字符串
@@ -71,7 +83,7 @@ export function xorEncrypt(str: string, key: string): string {
 }
 
 /**
- * 简单解密（基于 XOR 异或算法）
+ * 简单解密（基于 XOR 异或算法）。
  * @param str 加密后的字符串
  * @param key 解密密钥
  * @returns 解密后的字符串
@@ -98,7 +110,10 @@ export function xorDecrypt(str: string, key: string): string {
 }
 
 /**
- * 生成随机密钥
+ * 生成随机密钥。
+ *
+ * 当前基于 Math.random，适合 demo 或低风险场景；
+ * 若用于安全敏感用途，应改为 crypto.getRandomValues。
  * @param length 密钥长度，默认 16
  * @returns 随机密钥字符串
  */
@@ -114,22 +129,27 @@ export function generateKey(length: number = 16): string {
 }
 
 /**
- * 使用 Web Crypto API 进行 AES 加密
+ * 使用 Web Crypto API 进行 AES-GCM 加密。
+ *
+ * 实现要点：
+ * 1. 对 password 做 SHA-256，得到固定长度密钥材料。
+ * 2. 每次生成新的 12 字节 IV，避免重复 nonce。
+ * 3. 将 IV 与密文拼接后统一转成 Base64，方便传输与存储。
  * @param plainText 明文
  * @param password 密码
  * @returns 加密后的 Base64 字符串
  */
 export async function aesEncrypt(plainText: string, password: string): Promise<string> {
   try {
-    // 生成密钥
+    // 统一使用 UTF-8 编码处理输入，避免字符串跨环境表现不一致。
     const encoder = new TextEncoder();
     const data = encoder.encode(plainText);
     const passwordBuffer = encoder.encode(password);
 
-    // 使用 SHA-256 派生密钥
+    // 这里采用简化派生流程，适合工具函数场景；更严格场景可改为 PBKDF2/Argon2。
     const passwordKey = await crypto.subtle.digest("SHA-256", passwordBuffer);
 
-    // 生成 IV
+    // AES-GCM 推荐 12 字节 IV，浏览器原生实现也围绕这个长度优化。
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     // 导入密钥
@@ -154,7 +174,9 @@ export async function aesEncrypt(plainText: string, password: string): Promise<s
 }
 
 /**
- * 使用 Web Crypto API 进行 AES 解密
+ * 使用 Web Crypto API 进行 AES-GCM 解密。
+ *
+ * 解密过程与加密保持镜像：先拆分 IV，再导入同样的密钥材料，最后还原文本。
  * @param cipherText 密文（Base64 字符串）
  * @param password 密码
  * @returns 解密后的明文
@@ -193,7 +215,7 @@ export async function aesDecrypt(cipherText: string, password: string): Promise<
 }
 
 /**
- * SHA-256 哈希
+ * 计算 SHA-256 摘要。
  * @param str 要哈希的字符串
  * @returns 哈希后的十六进制字符串
  */
@@ -213,7 +235,7 @@ export async function sha256(str: string): Promise<string> {
 }
 
 /**
- * SHA-512 哈希
+ * 计算 SHA-512 摘要。
  * @param str 要哈希的字符串
  * @returns 哈希后的十六进制字符串
  */
@@ -233,7 +255,10 @@ export async function sha512(str: string): Promise<string> {
 }
 
 /**
- * MD5 哈希（简单实现，仅用于非安全场景）
+ * MD5 哈希（简单实现，仅用于非安全场景）。
+ *
+ * 保留该实现的目的是兼容某些历史系统或非安全校验需求，
+ * 不应将其用于密码、签名或任何安全敏感用途。
  * @param str 要哈希的字符串
  * @returns 哈希后的十六进制字符串
  */

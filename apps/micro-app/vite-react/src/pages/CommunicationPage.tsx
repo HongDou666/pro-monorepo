@@ -15,6 +15,11 @@ import {
 function CommunicationPage() {
   const [receivedData, setReceivedData] = useState<string>("");
 
+  /**
+   * 主动向主应用回传消息。
+   *
+   * 独立运行时不会存在 micro-app 数据中心，因此必须先做运行环境守卫。
+   */
   const sendDataToMain = () => {
     if (!isMicroAppRuntime(window)) {
       message.warning("当前不是 micro-app 运行环境，无法回传主应用数据");
@@ -37,15 +42,18 @@ function CommunicationPage() {
 
     const microAppWindow = window.microApp;
 
+    // 监听主应用发送到当前子应用的数据，并格式化后展示在页面上。
     const handleMainAppData = (data: Record<PropertyKey, unknown>) => {
       console.log("[子应用] 收到主应用数据:", data);
       setReceivedData(formatMicroAppMessage(data));
       message.info("收到主应用数据");
     };
 
+    // autoTrigger=true 让后挂载页面也能拿到最近一次已缓存的主应用消息。
     microAppWindow.addDataListener(handleMainAppData, true);
 
     return () => {
+      // effect 清理阶段移除监听，避免重复订阅。
       microAppWindow.removeDataListener(handleMainAppData);
     };
   }, []);

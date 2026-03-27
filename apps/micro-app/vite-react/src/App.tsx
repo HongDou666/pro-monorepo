@@ -18,6 +18,7 @@ function App() {
   const previousPathRef = useRef(location.pathname);
 
   useEffect(() => {
+    // 路由真正发生变化后取消旧页面请求，避免异步响应回写到新的页面状态。
     if (previousPathRef.current !== location.pathname) {
       cancelReactMicroRequests(`React micro route switching to ${location.pathname}`);
       previousPathRef.current = location.pathname;
@@ -46,6 +47,10 @@ function App() {
       </header>
 
       <main className="sub-app-shell__main">
+        {/*
+          Suspense 只包裹页面区域，让导航壳保持稳定，
+          页面级 chunk 则根据路由按需加载。
+        */}
         <Suspense fallback={<div className="sub-app-shell__fallback pro-react-fallback">页面加载中...</div>}>
           <Routes>
             <Route path="/" element={<HomePage />} />
