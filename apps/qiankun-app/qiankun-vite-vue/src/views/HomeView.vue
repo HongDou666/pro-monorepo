@@ -4,10 +4,18 @@
       <p class="home-view__eyebrow">Lightweight entry</p>
       <h2 class="home-view__title">首页首包只保留轻量内容</h2>
       <p class="home-view__desc">
+        <!--
+          首页文案优先解释为什么子应用首屏需要保持轻量：
+          qiankun 托管时，主应用是否能快速渲染容器，直接取决于子应用入口阶段的复杂度。
+        -->
         当前子应用以 qiankun 生命周期输出，首页只保留轻量入口内容，避免主应用容器首次挂载时等待过久。
       </p>
       <p class="home-view__desc home-view__desc--extra">
-        现在还新增了“请求示例”页面，用于演示 Vue 子应用复用共享 axios 公共包。
+        <!--
+          真正的交互能力拆到二级路由里：
+          通信面板演示主子应用数据同步，请求示例演示共享 axios 能力复用。
+        -->
+        现在还新增了“通信面板”和“请求示例”页面，用于演示 Vue 子应用与主应用通信，以及复用共享 axios 公共包。
       </p>
     </div>
   </section>

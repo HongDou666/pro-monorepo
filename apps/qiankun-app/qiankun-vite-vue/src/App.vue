@@ -2,12 +2,15 @@
   <div class="sub-app-shell pro-micro-shell">
     <header class="sub-app-shell__header pro-micro-header">
       <div>
+        <!-- 头部信息保持常驻，用来强调当前是 qiankun 托管下的 Vue 子应用。 -->
         <p class="sub-app-shell__eyebrow pro-eyebrow text-warning">vite-vue qiankun sub app</p>
         <h1 class="sub-app-shell__title pro-title">Vue 子应用</h1>
       </div>
 
+      <!-- 导航只负责切换子应用内部的三类页面：说明、通信、请求示例。 -->
       <nav class="sub-app-shell__nav">
         <RouterLink to="/" class="sub-app-shell__link">首页</RouterLink>
+        <RouterLink to="/communication" class="sub-app-shell__link">通信面板</RouterLink>
         <RouterLink to="/http" class="sub-app-shell__link">请求示例</RouterLink>
       </nav>
     </header>

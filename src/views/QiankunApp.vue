@@ -3,6 +3,17 @@ import type { MicroApp } from "qiankun";
 import { loadMicroApp } from "qiankun";
 import { message } from "ant-design-vue";
 import { QIANKUN_SUB_APP_URLS, isQiankunDebugEnabled, type QiankunSubAppName } from "@/plugins/qiankun-app-config";
+import { getQiankunStateActions } from "@/plugins/qiankun";
+import {
+  buildMainToSubAppState,
+  createInitialQiankunCommunicationState,
+  createQiankunMessage,
+  formatQiankunMessage,
+  getLatestSubAppToMainMessage,
+  hasQiankunMessageChanged,
+  normalizeQiankunCommunicationState,
+  QIANKUN_MESSAGE_TYPE
+} from "../../shared/qiankun/communication";
 
 type QiankunSubAppMeta = {
   name: QiankunSubAppName;
@@ -11,11 +22,19 @@ type QiankunSubAppMeta = {
   url: string;
 };
 
+// 当前用户在主应用面板里选中的子应用。
 const currentApp = ref<QiankunSubAppName>("qiankun-vite-vue");
+// loading/error/active 三个状态共同驱动左侧面板和右侧子应用容器的 UI 呈现。
 const loading = ref(true);
 const errorMessage = ref("");
 const activeAppName = ref<QiankunSubAppName | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
+// 最近一次从当前子应用回传到主应用的数据，在侧边调试面板里展示。
+const receivedData = ref("");
+// 复用 setupQiankun 时创建的全局状态动作，避免页面级重复 initGlobalState。
+const qiankunStateActions = getQiankunStateActions();
+// 主应用本地也维护一份通信快照，便于在切换子应用时立即回显最近消息。
+const communicationState = ref(createInitialQiankunCommunicationState());
 
 const subApps: Record<QiankunSubAppName, QiankunSubAppMeta> = {
   "qiankun-vite-vue": {
@@ -33,6 +52,7 @@ const subApps: Record<QiankunSubAppName, QiankunSubAppMeta> = {
 };
 
 let microApp: MicroApp | null = null;
+// 所有 mount/unmount/reload 操作都串行执行，避免用户快速点击导致生命周期交叉。
 let microAppTask: Promise<void> = Promise.resolve();
 
 const currentAppMeta = computed(() => subApps[currentApp.value]);
@@ -49,6 +69,44 @@ const statusText = computed(() => {
   return activeAppName.value ? "运行中" : "未启动";
 });
 
+function syncReceivedData(appName = currentApp.value) {
+  const latestReply = getLatestSubAppToMainMessage(communicationState.value, appName);
+
+  receivedData.value = latestReply ? formatQiankunMessage(latestReply) : "";
+}
+
+// 主应用发给子应用的消息保持固定结构，便于两个子应用共用一套展示逻辑。
+function createMainGreetingMessage(targetApp: QiankunSubAppName) {
+  return createQiankunMessage("main", QIANKUN_MESSAGE_TYPE.MAIN_GREETING, {
+    text: `来自主应用的问候，目标子应用: ${targetApp}`,
+    targetApp,
+    syncMode: "global-state"
+  });
+}
+
+/**
+ * 点击按钮后，把消息写进 qiankun global state 的 mainToSubApp 桶。
+ *
+ * 子应用侧监听的是自己对应的槽位，
+ * 所以这里不能直接覆盖整个 state，而是要基于当前快照做增量合并。
+ */
+function sendDataToSubApp() {
+  const targetApp = currentApp.value;
+  const nextMessage = createMainGreetingMessage(targetApp);
+  const nextState = buildMainToSubAppState(communicationState.value, targetApp, nextMessage);
+  const didUpdate = qiankunStateActions.setGlobalState(nextState as unknown as Record<string, unknown>);
+
+  if (!didUpdate) {
+    message.warning(`发送到 ${targetApp} 失败，请稍后重试`);
+
+    return;
+  }
+
+  communicationState.value = nextState;
+  message.success(`数据已发送到 ${targetApp}`);
+}
+
+// 卸载时只负责停止当前 micro app，不触碰全局通信状态，避免丢失历史消息。
 async function unmountCurrentMicroApp() {
   if (!microApp) {
     activeAppName.value = null;
@@ -64,6 +122,12 @@ async function unmountCurrentMicroApp() {
   }
 }
 
+/**
+ * 挂载当前选中的 qiankun 子应用。
+ *
+ * 顺序上要先 await 卸载旧实例，再 load 新实例，
+ * 否则同一个容器里可能出现生命周期重叠，导致空白页或残留 DOM。
+ */
 async function mountCurrentMicroApp() {
   await nextTick();
 
@@ -141,6 +205,7 @@ async function mountCurrentMicroApp() {
   }
 }
 
+// 统一串行队列，所有用户操作都走这里，避免并发 mount/unmount。
 function queueMicroAppTask(task: () => Promise<void>) {
   microAppTask = microAppTask.catch(() => undefined).then(task);
 
@@ -160,20 +225,44 @@ function openCurrentMicroAppInNewTab() {
   window.open(currentAppMeta.value.url, "_blank", "noopener,noreferrer");
 }
 
+// 切换子应用时，先同步本地展示数据，再排队执行实际挂载。
 async function handleSwitchApp(nextApp: QiankunSubAppName) {
   if (nextApp === currentApp.value && activeAppName.value === nextApp && !errorMessage.value) {
     return;
   }
 
   currentApp.value = nextApp;
+  syncReceivedData(nextApp);
   await queueMicroAppTask(mountCurrentMicroApp);
 }
 
 onMounted(() => {
+  // fireImmediately=true 让页面初次进入时就能拿到现有全局状态，避免面板首屏为空。
+  qiankunStateActions.onGlobalStateChange((state, prevState) => {
+    const nextCommunicationState = normalizeQiankunCommunicationState(state);
+    const prevCommunicationState = normalizeQiankunCommunicationState(prevState);
+    const nextMessage = getLatestSubAppToMainMessage(nextCommunicationState, currentApp.value);
+    const prevMessage = getLatestSubAppToMainMessage(prevCommunicationState, currentApp.value);
+
+    communicationState.value = nextCommunicationState;
+
+    // 只有当前子应用真的回传了新 traceId，才弹提示并刷新展示区。
+    if (hasQiankunMessageChanged(nextMessage, prevMessage)) {
+      receivedData.value = formatQiankunMessage(nextMessage);
+      message.info(`收到 ${currentApp.value} 的通信数据`);
+
+      return;
+    }
+
+    syncReceivedData();
+  }, true);
+
   void queueMicroAppTask(mountCurrentMicroApp);
 });
 
 onBeforeUnmount(() => {
+  // 页面销毁时注销全局监听，避免回到该页面后重复订阅。
+  qiankunStateActions.offGlobalStateChange();
   void queueMicroAppTask(unmountCurrentMicroApp);
 });
 </script>
@@ -195,6 +284,17 @@ onBeforeUnmount(() => {
             <p><strong>入口：</strong>{{ currentAppMeta.url }}</p>
             <p><strong>说明：</strong>{{ currentAppMeta.description }}</p>
           </div>
+
+          <a-divider style="margin: 12px 0" />
+
+          <a-button type="primary" :loading="loading" @click="sendDataToSubApp">发送数据到子应用</a-button>
+
+          <a-divider style="margin: 12px 0">接收到的数据</a-divider>
+
+          <div v-if="receivedData" class="qiankun-app__data">
+            <pre>{{ receivedData }}</pre>
+          </div>
+          <a-empty v-else description="暂无数据" :image-style="{ height: '40px' }" />
 
           <a-space wrap>
             <a-button type="primary" :loading="loading" @click="reloadCurrentMicroApp">重新加载</a-button>
@@ -285,6 +385,19 @@ onBeforeUnmount(() => {
 
     p {
       margin: 0;
+    }
+  }
+
+  &__data {
+    padding: 12px;
+    max-height: 220px;
+    overflow: auto;
+    border-radius: 8px;
+    background: #f8fafc;
+
+    pre {
+      margin: 0;
+      font-size: 12px;
     }
   }
 

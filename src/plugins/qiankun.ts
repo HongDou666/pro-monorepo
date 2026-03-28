@@ -1,6 +1,20 @@
-import { start } from "qiankun";
+import { initGlobalState, start, type MicroAppStateActions } from "qiankun";
+import { createInitialQiankunCommunicationState } from "../../shared/qiankun/communication";
 
 let hasStartedQiankun = false;
+let qiankunStateActions: MicroAppStateActions | null = null;
+
+function ensureQiankunStateActions() {
+  if (!qiankunStateActions) {
+    qiankunStateActions = initGlobalState(createInitialQiankunCommunicationState());
+  }
+
+  return qiankunStateActions;
+}
+
+export function getQiankunStateActions() {
+  return ensureQiankunStateActions();
+}
 
 /**
  * 启动 qiankun 运行时。
@@ -9,6 +23,8 @@ let hasStartedQiankun = false;
  * 因此这里只需要全局启动一次运行时即可。
  */
 export function setupQiankun(): void {
+  ensureQiankunStateActions();
+
   if (hasStartedQiankun) {
     return;
   }
