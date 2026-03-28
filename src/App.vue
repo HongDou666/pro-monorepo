@@ -8,7 +8,8 @@ const router = useRouter();
 // 菜单项
 const menuItems = [
   { key: "/", label: "首页" },
-  { key: "/micro-app", label: "微前端应用" }
+  { key: "/micro-app", label: "MicroApp-微前端应用" },
+  { key: "/qiankun-app", label: "Qiankun-微前端应用" }
 ];
 
 // 当前选中的菜单 - 使用 ref 避免初始化闪烁

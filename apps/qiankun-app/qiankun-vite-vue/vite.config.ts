@@ -1,0 +1,64 @@
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import UnoCSS from "unocss/vite";
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import { AntDesignVueResolver } from "unplugin-vue-components/resolvers";
+import qiankun from "vite-plugin-qiankun";
+import { fileURLToPath, URL } from "node:url";
+
+// https://vite.dev/config/
+export default defineConfig(({ command }) => {
+  const useDevMode = command === "serve";
+
+  return {
+    plugins: [
+      vue(),
+      qiankun("qiankun-vite-vue", {
+        useDevMode
+      }),
+      UnoCSS(),
+      AutoImport({
+        imports: ["vue", "vue-router"],
+        dts: "src/auto-imports.d.ts"
+      }),
+      Components({
+        resolvers: [
+          AntDesignVueResolver({
+            importStyle: false
+          })
+        ],
+        dts: "src/components.d.ts"
+      })
+    ],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("ant-design-vue")) {
+              return "vendor-antd-vue";
+            }
+
+            if (id.includes("vue-router") || id.includes("/vue/")) {
+              return "vendor-vue";
+            }
+
+            return undefined;
+          }
+        }
+      }
+    },
+    resolve: {
+      alias: {
+        "@pro-monorepo/axios": fileURLToPath(new URL("../../../packages/axios/src", import.meta.url))
+      }
+    },
+    server: {
+      port: 5176,
+      headers: {
+        // 允许跨域访问，供 qiankun 主应用装载。
+        "Access-Control-Allow-Origin": "*"
+      }
+    }
+  };
+});

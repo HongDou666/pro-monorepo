@@ -132,8 +132,6 @@ watch(currentApp, nextApp => {
 
 <template>
   <div class="micro-app">
-    <h1 class="micro-app__title">微前端应用</h1>
-
     <div class="micro-app__content">
       <a-card title="快速操作" class="micro-app__card">
         <a-space direction="vertical" style="width: 100%">

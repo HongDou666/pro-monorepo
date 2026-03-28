@@ -75,6 +75,7 @@ oldd
 # MicroApp 相关
 microapp
 micro-app
+qiankun
 beforemount
 unmount
 

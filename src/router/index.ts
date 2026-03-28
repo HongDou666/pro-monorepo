@@ -21,7 +21,15 @@ const routes: RouteRecordRaw[] = [
     name: "MicroApp",
     component: () => import("@/views/MicroApp.vue"),
     meta: {
-      title: "微前端应用"
+      title: "MicroApp-微前端应用"
+    }
+  },
+  {
+    path: "/qiankun-app",
+    name: "QiankunApp",
+    component: () => import("@/views/QiankunApp.vue"),
+    meta: {
+      title: "Qiankun-微前端应用"
     }
   },
   {
