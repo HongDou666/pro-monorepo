@@ -11,10 +11,12 @@ import {
   createMicroAppMessage,
   formatMicroAppMessage,
   isMicroAppRuntime,
-  MICRO_APP_MESSAGE_TYPE
+  MICRO_APP_MESSAGE_TYPE,
+  type MicroAppMessage
 } from "../../../../../shared/micro-app/communication";
 
 const receivedData = ref<string>("");
+const syncedContextData = ref<string>("");
 
 /**
  * 主动向主应用发送消息。
@@ -34,7 +36,6 @@ function sendDataToMain() {
   });
 
   window.microApp.dispatch(data as unknown as Record<PropertyKey, unknown>);
-  message.success("数据已发送到主应用");
 }
 
 /**
@@ -43,6 +44,14 @@ function sendDataToMain() {
  * 这里统一格式化后再显示，便于观察标准消息结构中的 source、type、traceId 等字段。
  */
 function handleMainAppData(data: Record<PropertyKey, unknown>) {
+  const microAppMessage = data as unknown as MicroAppMessage;
+
+  if (!microAppMessage.type || microAppMessage.type === MICRO_APP_MESSAGE_TYPE.MAIN_CONTEXT) {
+    syncedContextData.value = typeof data.value === "string" ? data.value : "";
+
+    return;
+  }
+
   console.log("[子应用] 收到主应用数据:", data);
   receivedData.value = formatMicroAppMessage(data);
   message.info("收到主应用数据");
@@ -73,6 +82,13 @@ onUnmounted(() => {
       <a-space direction="vertical" style="width: 100%">
         <a-button type="primary" @click="sendDataToMain">发送数据到主应用</a-button>
 
+        <a-divider>容器同步 data</a-divider>
+
+        <div v-if="syncedContextData" class="communication-view__data">
+          {{ syncedContextData }}
+        </div>
+        <a-empty v-else description="暂无同步数据" />
+
         <a-divider>接收到的数据</a-divider>
 
         <div v-if="receivedData" class="communication-view__data">
@@ -97,11 +113,7 @@ onUnmounted(() => {
     overflow: auto;
     border-radius: 8px;
     background: #f8fafc;
-
-    pre {
-      margin: 0;
-      font-size: 12px;
-    }
+    font-size: 12px;
   }
 }
 </style>

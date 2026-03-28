@@ -1,6 +1,17 @@
 import microApp from "@micro-zoe/micro-app";
 import { MICRO_APP_URLS, isMicroAppDebugEnabled } from "./micro-app-config";
 
+function getPreFetchApps() {
+  if (import.meta.env.DEV) {
+    return undefined;
+  }
+
+  return [
+    { name: "vite-vue", url: MICRO_APP_URLS["vite-vue"] },
+    { name: "vite-react", url: MICRO_APP_URLS["vite-react"] }
+  ];
+}
+
 function debugMicroAppLog(message: string): void {
   // 调试日志统一收口，避免到处散落 import.meta.env.DEV 判断。
   if (isMicroAppDebugEnabled()) {
@@ -17,14 +28,18 @@ function debugMicroAppLog(message: string): void {
  * 3. 生命周期日志，方便排查子应用装载问题。
  */
 export function setupMicroApp(): void {
+  const preFetchApps = getPreFetchApps();
+
   microApp.start({
     // 使用 state 模式，避免与主应用路由冲突
     "router-mode": "state",
-    // 统一预加载已经接入通信协议的子应用，减少首次切换等待时间。
-    preFetchApps: [
-      { name: "vite-vue", url: MICRO_APP_URLS["vite-vue"] },
-      { name: "vite-react", url: MICRO_APP_URLS["vite-react"] }
-    ],
+    // 开发态下关闭预加载，避免 Vite React 注入的内联 ESM 预热脚本被 micro-app 预加载器按普通脚本执行。
+    ...(preFetchApps
+      ? {
+          // 统一预加载已经接入通信协议的子应用，减少首次切换等待时间。
+          preFetchApps
+        }
+      : {}),
     // 全局生命周期钩子
     lifeCycles: {
       created() {

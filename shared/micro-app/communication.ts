@@ -15,6 +15,7 @@ export type MicroAppSource = "main" | MicroAppName;
 
 // 统一维护消息类型，避免主应用和子应用各自硬编码字符串。
 export const MICRO_APP_MESSAGE_TYPE = {
+  MAIN_CONTEXT: "main.context",
   MAIN_GREETING: "main.greeting",
   SUB_REPLY: "sub.reply"
 } as const;

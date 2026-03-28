@@ -11,6 +11,11 @@ declare module "vue-router" {
     title?: string;
 
     /**
+     * 是否在主导航中展示
+     */
+    showInMenu?: boolean;
+
+    /**
      * 是否需要登录
      */
     requiresAuth?: boolean;

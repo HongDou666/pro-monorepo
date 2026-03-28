@@ -9,11 +9,13 @@ import {
   createMicroAppMessage,
   formatMicroAppMessage,
   isMicroAppRuntime,
-  MICRO_APP_MESSAGE_TYPE
+  MICRO_APP_MESSAGE_TYPE,
+  type MicroAppMessage
 } from "../../../../../shared/micro-app/communication";
 
 function CommunicationPage() {
   const [receivedData, setReceivedData] = useState<string>("");
+  const [syncedContextData, setSyncedContextData] = useState<string>("");
 
   /**
    * 主动向主应用回传消息。
@@ -44,6 +46,14 @@ function CommunicationPage() {
 
     // 监听主应用发送到当前子应用的数据，并格式化后展示在页面上。
     const handleMainAppData = (data: Record<PropertyKey, unknown>) => {
+      const microAppMessage = data as unknown as MicroAppMessage;
+
+      if (!microAppMessage.type || microAppMessage.type === MICRO_APP_MESSAGE_TYPE.MAIN_CONTEXT) {
+        setSyncedContextData(typeof data.value === "string" ? data.value : "");
+
+        return;
+      }
+
       console.log("[子应用] 收到主应用数据:", data);
       setReceivedData(formatMicroAppMessage(data));
       message.info("收到主应用数据");
@@ -65,6 +75,14 @@ function CommunicationPage() {
           <Button type="primary" onClick={sendDataToMain}>
             发送数据到主应用
           </Button>
+
+          <Divider style={{ margin: "12px 0" }}>容器同步 data</Divider>
+
+          {syncedContextData ? (
+            <div className="communication-page__data">{syncedContextData}</div>
+          ) : (
+            <Empty description="暂无同步数据" imageStyle={{ height: 40 }} />
+          )}
 
           <Divider style={{ margin: "12px 0" }}>接收到的数据</Divider>
 

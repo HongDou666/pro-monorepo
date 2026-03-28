@@ -37,10 +37,15 @@ const routes: RouteRecordRaw[] = [
     name: "NotFound",
     component: () => import("@/views/NotFound.vue"),
     meta: {
-      title: "页面未找到"
+      title: "页面未找到",
+      showInMenu: false
     }
   }
 ];
+
+export const mainNavigationItems = routes
+  .filter(route => route.meta?.showInMenu !== false)
+  .map(route => ({ key: route.path, label: route.meta?.title ?? route.name?.toString() ?? route.path }));
 
 /**
  * 创建路由实例。

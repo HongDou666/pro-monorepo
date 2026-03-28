@@ -46,14 +46,18 @@ function createMainAppGreetingMessage(targetApp: MicroAppName) {
   return createMicroAppMessage("main", MICRO_APP_MESSAGE_TYPE.MAIN_GREETING, {
     text: `来自主应用的问候，目标子应用: ${targetApp}`,
     targetApp,
-    syncMode: "data"
+    delivery: "manual"
   });
 }
 
-// data 属性用于声明式同步当前主应用上下文，保留 setData 逻辑用于按钮触发场景。
-const subAppData = computed<Record<PropertyKey, unknown>>(() => {
-  return createMainAppGreetingMessage(currentApp.value) as unknown as Record<PropertyKey, unknown>;
-});
+function createMainAppContextData() {
+  return {
+    value: "主应用 micro-app 晚风轻轻，吹散一天的疲惫"
+  };
+}
+
+// data 属性只用于声明式同步主应用上下文，不与按钮触发的消息复用同一份内容。
+const subAppData = createMainAppContextData() as Record<PropertyKey, unknown>;
 
 // 记录当前绑定的监听函数，切换子应用时需要先解绑旧监听
 let activeDataListener: ((data: Record<PropertyKey, unknown>) => void) | null = null;
@@ -95,7 +99,6 @@ function sendDataToSubApp() {
   // setData 会将消息交给 micro-app 数据中心管理。
   // 即使子应用稍后才挂载，只要子应用使用 addDataListener(autoTrigger=true)，也能拿到最近一次数据。
   microApp.setData(targetApp, data as unknown as Record<PropertyKey, unknown>);
-  message.success(`数据已发送到 ${targetApp}`);
 }
 
 // 子应用加载完成
@@ -157,6 +160,7 @@ watch(currentApp, nextApp => {
         <div class="micro-app__container">
           <!-- 子应用容器 -->
           <micro-app
+            :key="currentApp"
             :name="microApps[currentApp].name"
             :url="microApps[currentApp].url"
             :data="subAppData"
