@@ -57,7 +57,7 @@ function HttpPage() {
         <p className="http-page__eyebrow home-page__eyebrow">shared request client</p>
         <h2 className="http-page__title home-page__title">公共请求包示例</h2>
         <p className="http-page__desc home-page__desc">
-          当前页面通过 <code>@pro-monorepo/axios</code> 创建的 React 子应用专属实例读取本地 mock 数据。
+          当前页面通过 <code>@pro-monorepo/axios</code> 创建的 React 子应用专属实例请求共享 Mock.js 接口。
         </p>
       </div>
 
@@ -79,7 +79,7 @@ function HttpPage() {
             {responseData ? (
               <pre>{JSON.stringify(responseData, null, 2)}</pre>
             ) : (
-              <span>点击按钮读取 public/mock/http-demo.json。</span>
+              <span>点击按钮请求共享 Mock.js 接口 /api/demo/http。</span>
             )}
           </div>
         </Space>

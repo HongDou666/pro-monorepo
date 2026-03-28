@@ -90,6 +90,7 @@ export function subscribeToQiankunMainMessage(appName: QiankunSubAppName, callba
 
   let isFirstRun = true;
 
+  // 因为 qiankun 没有提供“订阅特定 key”能力，所以只能在回调里自己过滤出发给当前子应用的消息
   runtimeActions.onGlobalStateChange?.((state, prevState) => {
     const nextState = normalizeQiankunCommunicationState(state);
     const previousState = normalizeQiankunCommunicationState(prevState);

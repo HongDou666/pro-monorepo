@@ -66,6 +66,7 @@ export default defineConfig({
       // 公共包别名
       "@pro-monorepo/axios": fileURLToPath(new URL("./packages/axios/src", import.meta.url)),
       "@pro-monorepo/components": fileURLToPath(new URL("./packages/components/src", import.meta.url)),
+      "@pro-monorepo/mock": fileURLToPath(new URL("./packages/mock/src", import.meta.url)),
       "@pro-monorepo/utils": fileURLToPath(new URL("./packages/utils/src", import.meta.url))
     }
   }

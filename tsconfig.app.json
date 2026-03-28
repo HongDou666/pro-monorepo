@@ -11,6 +11,8 @@
       "~/*": ["node_modules/*"],
       "@pro-monorepo/axios": ["packages/axios/src/index.ts"],
       "@pro-monorepo/axios/*": ["packages/axios/src/*"],
+      "@pro-monorepo/mock": ["packages/mock/src/index.ts"],
+      "@pro-monorepo/mock/*": ["packages/mock/src/*"],
       "@pro-monorepo/components/*": ["packages/components/src/*"],
       "@pro-monorepo/utils/*": ["packages/utils/src/*"]
     },

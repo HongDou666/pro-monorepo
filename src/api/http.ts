@@ -57,6 +57,7 @@ export const mainHttp = createHttpClient({
  */
 setupHttpInterceptors(mainHttp, {
   getToken: () => getMainAccessToken(), // 请求发出前自动读取 token 并注入 Authorization 头
+  // 错误提示也放在这里统一处理，避免每个页面重复写 message.error。
   showError: (errorMessage: string) => {
     void message.error(errorMessage);
   },

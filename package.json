@@ -36,6 +36,7 @@
     "@micro-zoe/micro-app": "1.0.0-rc.29",
     "@pro-monorepo/axios": "workspace:*",
     "@pro-monorepo/components": "workspace:*",
+    "@pro-monorepo/mock": "workspace:*",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.13.1",
     "dayjs": "^1.11.20",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
+    "@types/mockjs": "^1.0.10",
     "@cspell/dict-lorem-ipsum": "^4.0.5",
     "@playwright/test": "^1.58.2",
     "@pro-monorepo/eslint-config": "workspace:*",

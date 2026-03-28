@@ -22,6 +22,7 @@ async function build() {
       // 每次构建前清理 dist，避免旧格式文件残留造成误导。
       clearDist(name);
 
+      // 打包当前包，并行写出所有格式。
       const bundle = await rollup({
         input: config.input,
         plugins: [...config.plugins, terser()],

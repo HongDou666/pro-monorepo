@@ -96,7 +96,8 @@ function handleCancelRequests() {
       <a-card title="公共请求包接入示例" class="home__card">
         <a-space direction="vertical" size="middle" style="width: 100%">
           <p class="home__tip">
-            主应用已经接入 <code>@pro-monorepo/axios</code>，默认开启并发控制、失败重试和短时缓存。
+            主应用已经接入 <code>@pro-monorepo/axios</code> 与 <code>@pro-monorepo/mock</code>，
+            默认开启并发控制、失败重试、短时缓存与共享 Mock.js 拦截。
           </p>
           <a-space wrap>
             <a-button type="primary" :loading="isLoadingDemo" @click="handleLoadDemo(true)">读取缓存数据</a-button>
@@ -105,7 +106,7 @@ function handleCancelRequests() {
           </a-space>
           <div class="home__result">
             <pre v-if="httpDemo">{{ JSON.stringify(httpDemo, null, 2) }}</pre>
-            <span v-else>点击上方按钮读取 public/mock/http-demo.json，验证主应用请求实例。</span>
+            <span v-else>点击上方按钮请求共享 Mock.js 接口 /api/demo/http，验证主应用请求实例。</span>
           </div>
           <ul class="home__log-list">
             <li v-for="item in httpLogs" :key="item" class="home__log-item">

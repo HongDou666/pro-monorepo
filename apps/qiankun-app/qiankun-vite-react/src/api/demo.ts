@@ -1,4 +1,5 @@
 import type { InternalRequestConfig } from "@pro-monorepo/axios";
+import { appendMockScopeToParams, HTTP_DEMO_API_PATH, MOCK_APP_SCOPE } from "@pro-monorepo/mock";
 import { reactMicroHttp } from "./http";
 
 /**
@@ -13,9 +14,12 @@ export interface ReactMicroHttpDemoResponse {
   timestamp: string;
 }
 
-// 通过本地 mock 文件演示 get 请求、类型推断和运行时配置覆盖。
+// 通过共享 Mock.js 接口演示 get 请求、类型推断和运行时配置覆盖。
 export function fetchReactMicroHttpDemo(config?: InternalRequestConfig) {
-  return reactMicroHttp.get<ReactMicroHttpDemoResponse>("/mock/http-demo.json", config);
+  return reactMicroHttp.get<ReactMicroHttpDemoResponse>(HTTP_DEMO_API_PATH, {
+    ...config,
+    params: appendMockScopeToParams(MOCK_APP_SCOPE.QIANKUN_APP_REACT, config?.params)
+  });
 }
 
 // 仅用于演示和调试，帮助观察缓存层是否按预期工作。

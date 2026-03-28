@@ -12,7 +12,7 @@ const __filename = URL.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** 需要构建的 package 列表 */
-const packages = ["utils", "components", "axios"];
+const packages = ["utils", "components", "axios", "mock"];
 
 /** 默认外部依赖 */
 const defaultExternal = ["vue", "ant-design-vue", "@ant-design/icons-vue", "dayjs"];

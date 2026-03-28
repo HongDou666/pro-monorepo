@@ -6,7 +6,9 @@
     "baseUrl": ".",
     "paths": {
       "@pro-monorepo/axios": ["../../../packages/axios/src"],
-      "@pro-monorepo/axios/*": ["../../../packages/axios/src/*"]
+      "@pro-monorepo/axios/*": ["../../../packages/axios/src/*"],
+      "@pro-monorepo/mock": ["../../../packages/mock/src"],
+      "@pro-monorepo/mock/*": ["../../../packages/mock/src/*"]
     },
 
     /* Linting */

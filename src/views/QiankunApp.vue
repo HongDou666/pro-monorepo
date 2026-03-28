@@ -22,6 +22,48 @@ type QiankunSubAppMeta = {
   url: string;
 };
 
+/**
+ * Qiankun 页面级运行时缓存。
+ *
+ * 这里把“当前已加载的 microApp 实例”“串行任务队列”和“挂载序号”放到一起管理，
+ * 目的是解决两个典型问题：
+ * 1. 用户快速切换路由或重复点击按钮时，mount / unmount 生命周期交叉执行。
+ * 2. 旧的一次异步 mount 比新的一次更晚结束，导致把最新状态覆盖回旧状态。
+ */
+type QiankunViewRuntime = {
+  microApp: MicroApp | null;
+  task: Promise<void>;
+  mountSequence: number;
+};
+
+const QIANKUN_VIEW_RUNTIME_KEY = "__PRO_MONOREPO_QIANKUN_VIEW_RUNTIME__";
+
+/**
+ * 获取挂在全局对象上的 Qiankun 页面运行时。
+ *
+ * 之所以不用组件内局部变量，是因为这个页面可能经历：
+ * - 路由离开触发的异步卸载
+ * - 新页面实例创建后的重新挂载
+ *
+ * 如果运行时只放在组件实例里，不同实例会各自维护一份 task 队列，
+ * 反而会让旧实例的 unmount 和新实例的 mount 并发交错。
+ */
+function getQiankunViewRuntime() {
+  const runtimeHost = globalThis as typeof globalThis & {
+    [QIANKUN_VIEW_RUNTIME_KEY]?: QiankunViewRuntime;
+  };
+
+  if (!runtimeHost[QIANKUN_VIEW_RUNTIME_KEY]) {
+    runtimeHost[QIANKUN_VIEW_RUNTIME_KEY] = {
+      microApp: null,
+      task: Promise.resolve(),
+      mountSequence: 0
+    };
+  }
+
+  return runtimeHost[QIANKUN_VIEW_RUNTIME_KEY];
+}
+
 // 当前用户在主应用面板里选中的子应用。
 const currentApp = ref<QiankunSubAppName>("qiankun-vite-vue");
 // loading/error/active 三个状态共同驱动左侧面板和右侧子应用容器的 UI 呈现。
@@ -51,11 +93,52 @@ const subApps: Record<QiankunSubAppName, QiankunSubAppMeta> = {
   }
 };
 
-let microApp: MicroApp | null = null;
-// 所有 mount/unmount/reload 操作都串行执行，避免用户快速点击导致生命周期交叉。
-let microAppTask: Promise<void> = Promise.resolve();
-
 const currentAppMeta = computed(() => subApps[currentApp.value]);
+
+/**
+ * 处理来自 qiankun global state 的变更。
+ *
+ * 主应用和两个子应用都复用同一份通信状态树，
+ * 因此这里要做三层工作：
+ * 1. 先把未知结构的 state 规范化成统一的通信对象。
+ * 2. 再只提取“当前选中子应用”相关的消息。
+ * 3. 最后用 traceId 判断这次是不是一条真正的新消息，避免重复提示。
+ */
+function handleGlobalStateChange(state: Record<string, unknown>, prevState: Record<string, unknown>) {
+  const nextCommunicationState = normalizeQiankunCommunicationState(state);
+  const prevCommunicationState = normalizeQiankunCommunicationState(prevState);
+  const nextMessage = getLatestSubAppToMainMessage(nextCommunicationState, currentApp.value);
+  const prevMessage = getLatestSubAppToMainMessage(prevCommunicationState, currentApp.value);
+
+  communicationState.value = nextCommunicationState;
+
+  // 只有当前子应用真的回传了新 traceId，才弹提示并刷新展示区。
+  if (hasQiankunMessageChanged(nextMessage, prevMessage)) {
+    receivedData.value = formatQiankunMessage(nextMessage);
+    message.info(`收到 ${currentApp.value} 的通信数据`);
+
+    return;
+  }
+
+  syncReceivedData();
+}
+
+/**
+ * 绑定 qiankun global state 监听。
+ *
+ * fireImmediately=true 很关键：
+ * 页面首次进入时就能拿到当前缓存状态，
+ * 否则左侧“接收到的数据”会在第一次真实变更前一直为空。
+ */
+function bindGlobalStateListener() {
+  // fireImmediately=true 让页面初次进入时就能拿到现有全局状态，避免面板首屏为空。
+  qiankunStateActions.onGlobalStateChange(handleGlobalStateChange, true);
+}
+
+// 页面销毁时要解除监听，避免下次进入该页面时重复订阅同一份 global state。
+function unbindGlobalStateListener() {
+  qiankunStateActions.offGlobalStateChange();
+}
 
 const statusText = computed(() => {
   if (loading.value) {
@@ -108,17 +191,26 @@ function sendDataToSubApp() {
 
 // 卸载时只负责停止当前 micro app，不触碰全局通信状态，避免丢失历史消息。
 async function unmountCurrentMicroApp() {
-  if (!microApp) {
+  const runtime = getQiankunViewRuntime();
+
+  // 每次卸载都推进一次挂载序号，让所有“仍在路上”的旧 mount 结果自动失效。
+  runtime.mountSequence += 1;
+
+  if (!runtime.microApp) {
     activeAppName.value = null;
+    loading.value = false;
 
     return;
   }
 
   try {
-    await microApp.unmount();
+    // 卸载阶段仍然显示 loading，避免用户误以为子应用已经可交互。
+    loading.value = true;
+    await runtime.microApp.unmount();
   } finally {
-    microApp = null;
+    runtime.microApp = null;
     activeAppName.value = null;
+    loading.value = false;
   }
 }
 
@@ -129,6 +221,7 @@ async function unmountCurrentMicroApp() {
  * 否则同一个容器里可能出现生命周期重叠，导致空白页或残留 DOM。
  */
 async function mountCurrentMicroApp() {
+  // 等待视图层先把 ref 容器渲染出来，再尝试 loadMicroApp。
   await nextTick();
 
   const container = containerRef.value;
@@ -151,11 +244,18 @@ async function mountCurrentMicroApp() {
   }
 
   try {
-    microApp = loadMicroApp(
+    const runtime = getQiankunViewRuntime();
+    // 记录本次挂载对应的序号，后面用来判断这次 mount 结束时是否仍然是“最新的一次”。
+    const mountSequence = runtime.mountSequence + 1;
+
+    runtime.mountSequence = mountSequence;
+
+    runtime.microApp = loadMicroApp(
       {
         name: targetApp.name,
         entry: targetApp.url,
         container,
+        // props 代表主应用传给子应用的数据，生命周期内不变，适合一些初始化参数。
         props: {
           hostApp: "pro-monorepo-main",
           hostRoute: "/qiankun-app"
@@ -163,6 +263,7 @@ async function mountCurrentMicroApp() {
       },
       undefined,
       {
+        // beforeMount 代表子应用即将被挂载
         beforeMount: [
           () => {
             loading.value = true;
@@ -170,14 +271,13 @@ async function mountCurrentMicroApp() {
             return Promise.resolve();
           }
         ],
+        // afterMount 代表子应用已经完成挂载
         afterMount: [
           () => {
-            loading.value = false;
-            activeAppName.value = targetApp.name;
-
             return Promise.resolve();
           }
         ],
+        // beforeUnmount 代表子应用即将被卸载
         beforeUnmount: [
           () => {
             loading.value = true;
@@ -185,19 +285,27 @@ async function mountCurrentMicroApp() {
             return Promise.resolve();
           }
         ],
+        // afterUnmount 代表子应用已经完成卸载
         afterUnmount: [
           () => {
-            loading.value = false;
-
             return Promise.resolve();
           }
         ]
       }
     );
 
-    await microApp.mountPromise;
+    // 等待 qiankun 自己的 mountPromise 完成，作为“子应用真正挂载结束”的最终依据。
+    await runtime.microApp.mountPromise;
+
+    // 以 mountPromise 真正完成作为最终准信号，避免个别场景 afterMount 未触发时页面永久停留在 loading。
+    if (getQiankunViewRuntime().mountSequence !== mountSequence) {
+      return;
+    }
+
+    loading.value = false;
+    activeAppName.value = targetApp.name;
   } catch (error) {
-    microApp = null;
+    getQiankunViewRuntime().microApp = null;
     activeAppName.value = null;
     loading.value = false;
     errorMessage.value = (error as Error).message || `${targetApp.title} 加载失败`;
@@ -207,20 +315,26 @@ async function mountCurrentMicroApp() {
 
 // 统一串行队列，所有用户操作都走这里，避免并发 mount/unmount。
 function queueMicroAppTask(task: () => Promise<void>) {
-  microAppTask = microAppTask.catch(() => undefined).then(task);
+  const runtime = getQiankunViewRuntime();
 
-  return microAppTask;
+  // 旧任务如果失败，也不能把整条队列打断；否则后续点击“重新加载”会彻底失效。
+  runtime.task = runtime.task.catch(() => undefined).then(task);
+
+  return runtime.task;
 }
 
+// 手动重载时仍然复用同一条串行队列，避免和自动卸载并发执行。
 function reloadCurrentMicroApp() {
   void queueMicroAppTask(mountCurrentMicroApp);
 }
 
+// 主动卸载入口只负责触发队列并给出结果提示，具体时序仍由 unmountCurrentMicroApp 控制。
 async function handleUnmountCurrentApp() {
   await queueMicroAppTask(unmountCurrentMicroApp);
   message.info("子应用已卸载");
 }
 
+// 独立打开主要用于排查：可以快速判断问题出在 qiankun 托管层，还是子应用自身。
 function openCurrentMicroAppInNewTab() {
   window.open(currentAppMeta.value.url, "_blank", "noopener,noreferrer");
 }
@@ -237,32 +351,15 @@ async function handleSwitchApp(nextApp: QiankunSubAppName) {
 }
 
 onMounted(() => {
-  // fireImmediately=true 让页面初次进入时就能拿到现有全局状态，避免面板首屏为空。
-  qiankunStateActions.onGlobalStateChange((state, prevState) => {
-    const nextCommunicationState = normalizeQiankunCommunicationState(state);
-    const prevCommunicationState = normalizeQiankunCommunicationState(prevState);
-    const nextMessage = getLatestSubAppToMainMessage(nextCommunicationState, currentApp.value);
-    const prevMessage = getLatestSubAppToMainMessage(prevCommunicationState, currentApp.value);
-
-    communicationState.value = nextCommunicationState;
-
-    // 只有当前子应用真的回传了新 traceId，才弹提示并刷新展示区。
-    if (hasQiankunMessageChanged(nextMessage, prevMessage)) {
-      receivedData.value = formatQiankunMessage(nextMessage);
-      message.info(`收到 ${currentApp.value} 的通信数据`);
-
-      return;
-    }
-
-    syncReceivedData();
-  }, true);
+  // 页面进入时先恢复通信监听，再排队挂载当前默认子应用。
+  bindGlobalStateListener();
 
   void queueMicroAppTask(mountCurrentMicroApp);
 });
 
 onBeforeUnmount(() => {
-  // 页面销毁时注销全局监听，避免回到该页面后重复订阅。
-  qiankunStateActions.offGlobalStateChange();
+  // 页面销毁时注销全局监听并卸载子应用，避免重复订阅和残留沙箱实例。
+  unbindGlobalStateListener();
   void queueMicroAppTask(unmountCurrentMicroApp);
 });
 </script>

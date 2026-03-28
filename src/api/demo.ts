@@ -1,10 +1,11 @@
 import type { InternalRequestConfig } from "@pro-monorepo/axios";
+import { appendMockScopeToParams, HTTP_DEMO_API_PATH, MOCK_APP_SCOPE } from "@pro-monorepo/mock";
 import { mainHttp } from "./http";
 
 /**
  * 主应用 demo 接口的响应结构。
  *
- * 这里使用本地 mock json，所以字段比较简单，主要用于验证：
+ * 这里改为请求共享 Mock.js 接口，所以字段仍保持简单，主要用于验证：
  * 1. mainHttp 是否能正常发起请求。
  * 2. 请求缓存是否生效。
  * 3. 调用方能否正确获得类型推断。
@@ -18,7 +19,7 @@ export interface MainHttpDemoResponse {
 
 /**
  * 主应用请求示例。
- * 使用本地静态资源即可验证公共请求包接入是否正常，无需依赖后端环境。
+ * 使用共享 mock API 即可验证公共请求包接入是否正常，无需依赖后端环境。
  *
  * 参数说明：
  * - config 为可选的 axios 扩展配置。
@@ -30,7 +31,10 @@ export interface MainHttpDemoResponse {
  * - 关闭错误提示：interceptorOptions.skipErrorToast = true
  */
 export function fetchMainHttpDemo(config?: InternalRequestConfig) {
-  return mainHttp.get<MainHttpDemoResponse>("/mock/http-demo.json", config);
+  return mainHttp.get<MainHttpDemoResponse>(HTTP_DEMO_API_PATH, {
+    ...config,
+    params: appendMockScopeToParams(MOCK_APP_SCOPE.MAIN_APP, config?.params)
+  });
 }
 
 /**

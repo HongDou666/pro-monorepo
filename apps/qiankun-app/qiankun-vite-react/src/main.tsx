@@ -1,6 +1,7 @@
 import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, MemoryRouter } from "react-router-dom";
+import { MOCK_APP_SCOPE, setupMockInDev } from "@pro-monorepo/mock";
 import { qiankunWindow, renderWithQiankun, type QiankunProps } from "vite-plugin-qiankun/dist/helper";
 import "virtual:uno.css";
 import "./index.css";
@@ -10,6 +11,9 @@ import { clearQiankunCommunicationActions, setQiankunCommunicationActions } from
 // React 18 root 需要跨多次 mount/unmount 复用并按容器变化安全重建。
 let root: Root | null = null;
 let rootElement: Element | null = null;
+
+// qiankun React 子应用通过共享包统一初始化开发态 Mock.js。
+void setupMockInDev(MOCK_APP_SCOPE.QIANKUN_APP_REACT);
 
 /**
  * 获取当前应该挂载的根节点。

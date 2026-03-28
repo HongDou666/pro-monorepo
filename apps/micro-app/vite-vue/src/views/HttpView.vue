@@ -57,8 +57,8 @@ function cancelRequests() {
       <p class="http-view__eyebrow">shared request client</p>
       <h2 class="http-view__title">公共请求包示例</h2>
       <p class="http-view__desc">
-        当前页面通过 <code>@pro-monorepo/axios</code> 创建的 Vue 子应用专属实例读取本地 mock 数据，
-        用于验证共享封装在子应用内的接入方式。
+        当前页面通过 <code>@pro-monorepo/axios</code> 创建的 Vue 子应用专属实例请求共享 Mock.js 接口， 用于验证 monorepo
+        级别 mock 封装在子应用内的接入方式。
       </p>
     </div>
 
@@ -71,7 +71,7 @@ function cancelRequests() {
         </a-space>
         <div class="http-view__result">
           <pre v-if="responseData">{{ JSON.stringify(responseData, null, 2) }}</pre>
-          <span v-else>点击按钮读取 public/mock/http-demo.json。</span>
+          <span v-else>点击按钮请求共享 Mock.js 接口 /api/demo/http。</span>
         </div>
       </a-space>
     </a-card>

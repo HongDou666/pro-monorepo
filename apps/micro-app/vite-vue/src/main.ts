@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { MOCK_APP_SCOPE, setupMockInDev } from "@pro-monorepo/mock";
 import "ant-design-vue/dist/reset.css";
 import "virtual:uno.css";
 import "./style.css";
@@ -15,6 +16,9 @@ import { cancelVueMicroRequests } from "./api/http";
  *
  * 因此入口只做最基础的装配，不耦合主应用专属逻辑。
  */
+// Vue 子应用通过共享包统一初始化开发态 Mock.js。
+void setupMockInDev(MOCK_APP_SCOPE.MICRO_APP_VUE);
+
 const app = createApp(App);
 
 // 路由切换时主动取消当前子应用未完成请求，避免旧页面响应回写到新页面。

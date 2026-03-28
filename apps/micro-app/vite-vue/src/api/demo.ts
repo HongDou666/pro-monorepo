@@ -1,4 +1,5 @@
 import type { InternalRequestConfig } from "@pro-monorepo/axios";
+import { appendMockScopeToParams, HTTP_DEMO_API_PATH, MOCK_APP_SCOPE } from "@pro-monorepo/mock";
 import { vueMicroHttp } from "./http";
 
 /**
@@ -13,9 +14,12 @@ export interface VueMicroHttpDemoResponse {
   timestamp: string;
 }
 
-// 通过本地 mock 资源验证请求实例、缓存和类型推断是否工作正常。
+// 通过共享 Mock.js 接口验证请求实例、缓存和类型推断是否工作正常。
 export function fetchVueMicroHttpDemo(config?: InternalRequestConfig) {
-  return vueMicroHttp.get<VueMicroHttpDemoResponse>("/mock/http-demo.json", config);
+  return vueMicroHttp.get<VueMicroHttpDemoResponse>(HTTP_DEMO_API_PATH, {
+    ...config,
+    params: appendMockScopeToParams(MOCK_APP_SCOPE.MICRO_APP_VUE, config?.params)
+  });
 }
 
 // 暴露缓存 key 主要服务于演示页和调试，不建议业务逻辑强依赖具体 key 结构。

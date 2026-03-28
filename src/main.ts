@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { MOCK_APP_SCOPE, setupMockInDev } from "@pro-monorepo/mock";
 import "@/styles/index";
 import App from "@/App.vue";
 import { setupQiankun } from "@/plugins/qiankun";
@@ -16,6 +17,9 @@ import { setupMicroApp } from "@/plugins/micro-app";
  * 3. 挂载前等待路由 ready，避免首屏因异步路由状态抖动。
  */
 async function bootstrap() {
+  // 开发态统一启用共享 Mock.js，生产环境则直接跳过。
+  await setupMockInDev(MOCK_APP_SCOPE.MAIN_APP);
+
   // 先配置进度条，再注册路由守卫，确保首个路由跳转也能显示反馈。
   setupNProgress();
 

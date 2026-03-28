@@ -1,0 +1,40 @@
+{
+  "name": "@pro-monorepo/mock",
+  "version": "1.0.0",
+  "description": "monorepo 共享 Mock.js 能力，统一管理主应用与子应用的演示接口",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "keywords": [
+    "mockjs",
+    "vite",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0",
+  "dependencies": {
+    "mockjs": "^1.1.0"
+  },
+  "buildOptions": {
+    "name": "ProMonorepoMock",
+    "formats": [
+      "esm",
+      "cjs"
+    ]
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

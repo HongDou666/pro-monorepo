@@ -1,4 +1,5 @@
 import type { App as VueApp } from "vue";
+import { MOCK_APP_SCOPE, setupMockInDev } from "@pro-monorepo/mock";
 import "ant-design-vue/dist/reset.css";
 import "virtual:uno.css";
 import "./style.css";
@@ -13,6 +14,9 @@ import { clearQiankunCommunicationActions, setQiankunCommunicationActions } from
 // 当前 Vue 应用实例与 router 在多次挂载之间需要显式管理其生命周期。
 let app: VueApp<Element> | null = null;
 let router: Router | null = null;
+
+// qiankun Vue 子应用通过共享包统一初始化开发态 Mock.js。
+void setupMockInDev(MOCK_APP_SCOPE.QIANKUN_APP_VUE);
 
 /**
  * 获取当前应该挂载的 #app 容器。

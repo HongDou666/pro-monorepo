@@ -40,7 +40,8 @@ export default defineConfig(({ command }) => {
     },
     resolve: {
       alias: {
-        "@pro-monorepo/axios": fileURLToPath(new URL("../../../packages/axios/src", import.meta.url))
+        "@pro-monorepo/axios": fileURLToPath(new URL("../../../packages/axios/src", import.meta.url)),
+        "@pro-monorepo/mock": fileURLToPath(new URL("../../../packages/mock/src", import.meta.url))
       }
     },
     server: {
