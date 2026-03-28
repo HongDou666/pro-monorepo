@@ -2,15 +2,18 @@
 import { message } from "ant-design-vue";
 import { formatQiankunMessage } from "../../../../../shared/qiankun/communication";
 import {
+  getQiankunContainerData,
   isQiankunCommunicationRuntime,
   sendQiankunReplyToMain,
   subscribeToQiankunMainMessage
 } from "../qiankun-communication";
 
+const syncedContextData = ref("");
 // 页面上只展示最近一次由主应用下发到当前子应用的数据。
 const receivedData = ref("");
 // 保存取消订阅函数，确保页面离开时能正确清理监听。
 let unsubscribeMainMessage: () => void = () => {};
+let hasHandledInitialMessage = false;
 
 /**
  * 主动向主应用发送回传数据。
@@ -32,11 +35,11 @@ function sendDataToMain() {
 
     return;
   }
-
-  message.success("数据已发送到主应用");
 }
 
 onMounted(() => {
+  syncedContextData.value = getQiankunContainerData()?.value ?? "";
+
   if (!isQiankunCommunicationRuntime()) {
     return;
   }
@@ -45,6 +48,13 @@ onMounted(() => {
   unsubscribeMainMessage = subscribeToQiankunMainMessage("qiankun-vite-vue", data => {
     console.log("[qiankun-vite-vue] 收到主应用数据:", data);
     receivedData.value = formatQiankunMessage(data);
+
+    if (!hasHandledInitialMessage) {
+      hasHandledInitialMessage = true;
+
+      return;
+    }
+
     message.info("收到主应用数据");
   });
 });
@@ -59,6 +69,13 @@ onUnmounted(() => {
     <a-card title="数据通信" class="communication-view__card">
       <a-space direction="vertical" style="width: 100%">
         <a-button type="primary" @click="sendDataToMain">发送数据到主应用</a-button>
+
+        <a-divider>容器同步 data</a-divider>
+
+        <div v-if="syncedContextData" class="communication-view__data">
+          {{ syncedContextData }}
+        </div>
+        <a-empty v-else description="暂无同步数据" />
 
         <a-divider>接收到的数据</a-divider>
 

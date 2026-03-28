@@ -11,8 +11,10 @@ import {
   createQiankunMessage,
   getLatestMainToSubAppMessage,
   hasQiankunMessageChanged,
+  normalizeQiankunContainerData,
   normalizeQiankunCommunicationState,
   QIANKUN_MESSAGE_TYPE,
+  type QiankunContainerData,
   type QiankunCommunicationState,
   type QiankunMessage,
   type QiankunSubAppName
@@ -27,24 +29,31 @@ type QiankunRuntimeActions = {
   offGlobalStateChange?: () => boolean;
 };
 
+type QiankunCommunicationProps = QiankunProps & {
+  containerData?: QiankunContainerData | Record<string, unknown>;
+};
+
 // 当前子应用实例拿到的 qiankun 运行时动作。
 let runtimeActions: QiankunRuntimeActions = {};
 // 本地缓存最近一份通信 state，发消息时用于增量合并。
 let currentState: QiankunCommunicationState = createInitialQiankunCommunicationState();
+let currentContainerData: QiankunContainerData | null = null;
 
 // 挂载或更新时把主应用注入的通信动作接入本地适配层。
-export function setQiankunCommunicationActions(props: QiankunProps = {}) {
+export function setQiankunCommunicationActions(props: QiankunCommunicationProps = {}) {
   runtimeActions = {
     onGlobalStateChange: props.onGlobalStateChange,
     setGlobalState: props.setGlobalState,
     offGlobalStateChange: props.offGlobalStateChange
   };
+  currentContainerData = normalizeQiankunContainerData(props.containerData);
 }
 
 // 卸载时重置上下文，避免旧页面闭包继续引用过期状态。
 export function clearQiankunCommunicationActions() {
   runtimeActions = {};
   currentState = createInitialQiankunCommunicationState();
+  currentContainerData = null;
 }
 
 // 给页面层提供统一的运行环境判断。
@@ -52,6 +61,10 @@ export function isQiankunCommunicationRuntime() {
   return (
     typeof runtimeActions.onGlobalStateChange === "function" && typeof runtimeActions.setGlobalState === "function"
   );
+}
+
+export function getQiankunContainerData() {
+  return currentContainerData;
 }
 
 // 向主应用回传当前子应用消息，更新的是 subAppToMain 桶。

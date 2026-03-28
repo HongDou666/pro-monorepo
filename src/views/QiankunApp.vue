@@ -77,6 +77,9 @@ const receivedData = ref("");
 const qiankunStateActions = getQiankunStateActions();
 // 主应用本地也维护一份通信快照，便于在切换子应用时立即回显最近消息。
 const communicationState = ref(createInitialQiankunCommunicationState());
+const qiankunContainerData = {
+  value: "主应用 qiankun"
+};
 
 const subApps: Record<QiankunSubAppName, QiankunSubAppMeta> = {
   "qiankun-vite-vue": {
@@ -163,7 +166,7 @@ function createMainGreetingMessage(targetApp: QiankunSubAppName) {
   return createQiankunMessage("main", QIANKUN_MESSAGE_TYPE.MAIN_GREETING, {
     text: `来自主应用的问候，目标子应用: ${targetApp}`,
     targetApp,
-    syncMode: "global-state"
+    delivery: "manual"
   });
 }
 
@@ -186,7 +189,6 @@ function sendDataToSubApp() {
   }
 
   communicationState.value = nextState;
-  message.success(`数据已发送到 ${targetApp}`);
 }
 
 // 卸载时只负责停止当前 micro app，不触碰全局通信状态，避免丢失历史消息。
@@ -258,7 +260,8 @@ async function mountCurrentMicroApp() {
         // props 代表主应用传给子应用的数据，生命周期内不变，适合一些初始化参数。
         props: {
           hostApp: "pro-monorepo-main",
-          hostRoute: "/qiankun-app"
+          hostRoute: "/qiankun-app",
+          containerData: qiankunContainerData
         }
       },
       undefined,

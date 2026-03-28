@@ -11,8 +11,10 @@ import {
   createQiankunMessage,
   getLatestMainToSubAppMessage,
   hasQiankunMessageChanged,
+  normalizeQiankunContainerData,
   normalizeQiankunCommunicationState,
   QIANKUN_MESSAGE_TYPE,
+  type QiankunContainerData,
   type QiankunCommunicationState,
   type QiankunMessage,
   type QiankunSubAppName
@@ -27,24 +29,31 @@ type QiankunRuntimeActions = {
   offGlobalStateChange?: () => boolean;
 };
 
+type QiankunCommunicationProps = QiankunProps & {
+  containerData?: QiankunContainerData | Record<string, unknown>;
+};
+
 // 当前子应用实例拿到的 qiankun global state 动作集合。
 let runtimeActions: QiankunRuntimeActions = {};
 // 本地缓存最近一次 state，发送回主应用时需要基于它做合并更新。
 let currentState: QiankunCommunicationState = createInitialQiankunCommunicationState();
+let currentContainerData: QiankunContainerData | null = null;
 
 // 在 mount/update 生命周期里注入运行时动作，供页面层复用。
-export function setQiankunCommunicationActions(props: QiankunProps = {}) {
+export function setQiankunCommunicationActions(props: QiankunCommunicationProps = {}) {
   runtimeActions = {
     onGlobalStateChange: props.onGlobalStateChange,
     setGlobalState: props.setGlobalState,
     offGlobalStateChange: props.offGlobalStateChange
   };
+  currentContainerData = normalizeQiankunContainerData(props.containerData);
 }
 
 // 在 unmount 时清空动作和本地缓存，避免旧实例残留影响下一次挂载。
 export function clearQiankunCommunicationActions() {
   runtimeActions = {};
   currentState = createInitialQiankunCommunicationState();
+  currentContainerData = null;
 }
 
 // 独立运行时没有 qiankun props，这里作为统一守卫给页面按钮和订阅流程使用。
@@ -52,6 +61,10 @@ export function isQiankunCommunicationRuntime() {
   return (
     typeof runtimeActions.onGlobalStateChange === "function" && typeof runtimeActions.setGlobalState === "function"
   );
+}
+
+export function getQiankunContainerData() {
+  return currentContainerData;
 }
 
 /**

@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Button, Card, Divider, Empty, Space, message } from "antd";
 import { formatQiankunMessage } from "../../../../../shared/qiankun/communication";
 import {
+  getQiankunContainerData,
   isQiankunCommunicationRuntime,
   sendQiankunReplyToMain,
   subscribeToQiankunMainMessage
 } from "../qiankun-communication";
 
 function CommunicationPage() {
+  const [syncedContextData] = useState(() => getQiankunContainerData()?.value ?? "");
   // 这里始终只展示最近一次主应用下发给当前子应用的数据。
   const [receivedData, setReceivedData] = useState("");
 
@@ -31,8 +33,6 @@ function CommunicationPage() {
 
       return;
     }
-
-    message.success("数据已发送到主应用");
   };
 
   useEffect(() => {
@@ -40,10 +40,19 @@ function CommunicationPage() {
       return;
     }
 
+    let hasHandledInitialMessage = false;
+
     // fireImmediately 对应的缓存回放与后续增量消息都由适配层统一处理。
     return subscribeToQiankunMainMessage("qiankun-vite-react", data => {
       console.log("[qiankun-vite-react] 收到主应用数据:", data);
       setReceivedData(formatQiankunMessage(data));
+
+      if (!hasHandledInitialMessage) {
+        hasHandledInitialMessage = true;
+
+        return;
+      }
+
       message.info("收到主应用数据");
     });
   }, []);
@@ -55,6 +64,14 @@ function CommunicationPage() {
           <Button type="primary" onClick={sendDataToMain}>
             发送数据到主应用
           </Button>
+
+          <Divider style={{ margin: "12px 0" }}>容器同步 data</Divider>
+
+          {syncedContextData ? (
+            <div className="communication-page__data">{syncedContextData}</div>
+          ) : (
+            <Empty description="暂无同步数据" imageStyle={{ height: 40 }} />
+          )}
 
           <Divider style={{ margin: "12px 0" }}>接收到的数据</Divider>
 

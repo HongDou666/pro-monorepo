@@ -31,6 +31,10 @@ export interface QiankunMessage<TPayload = Record<string, unknown>> {
   [key: string]: unknown;
 }
 
+export interface QiankunContainerData {
+  value: string;
+}
+
 /**
  * qiankun global state 的第一层结构。
  *
@@ -61,6 +65,20 @@ export function createQiankunMessage<TPayload>(
 // 调试面板统一使用格式化后的 JSON 字符串，便于直接在 UI 中阅读。
 export function formatQiankunMessage(data: unknown): string {
   return JSON.stringify(data, null, 2);
+}
+
+export function normalizeQiankunContainerData(data: unknown): QiankunContainerData | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const value = (data as Record<string, unknown>).value;
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  return { value };
 }
 
 // 初始化时必须把每个子应用的消息槽位都创建出来，后续 setGlobalState 才能合法更新。
