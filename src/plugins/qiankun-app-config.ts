@@ -1,4 +1,4 @@
-export type QiankunSubAppName = "qiankun-vite-vue" | "qiankun-vite-react";
+import type { QiankunSubAppName } from "../../shared/qiankun/communication";
 
 type QiankunSubAppUrlMap = Record<QiankunSubAppName, string>;
 
@@ -19,6 +19,12 @@ export const QIANKUN_SUB_APP_URLS: QiankunSubAppUrlMap = {
   "qiankun-vite-react": import.meta.env.VITE_QIANKUN_APP_REACT_URL || defaultQiankunSubAppUrls["qiankun-vite-react"]
 };
 
+/**
+ * 是否输出 qiankun 调试日志。
+ *
+ * 与 micro-app 保持同样的开关策略：默认只在开发环境输出，
+ * 避免生产环境出现无意义的生命周期日志。
+ */
 export function isQiankunDebugEnabled(): boolean {
   return import.meta.env.DEV;
 }

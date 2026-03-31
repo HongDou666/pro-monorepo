@@ -35,6 +35,12 @@ export class MemoryCacheStore implements CacheStore {
  *
  * 这里不直接使用 JSON.stringify 的原因是对象 key 顺序可能不稳定，
  * 导致语义相同的 params/data 生成不同缓存签名。
+ *
+ * 约束：
+ * 1. 目标是给请求参数生成稳定签名，不是通用序列化器。
+ * 2. 默认假设传入的是普通 JSON 风格数据；循环引用、Date、Map、Set、File 等复杂值
+ *    不保证得到业务期望的签名结果。
+ * 3. 之所以保持内置实现而不是引入额外依赖，是因为当前诉求只覆盖轻量请求缓存。
  */
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== "object") {
@@ -136,6 +142,7 @@ function cloneValue<T>(value: T): T {
   try {
     return JSON.parse(JSON.stringify(value)) as T;
   } catch {
+    // 某些值不可序列化时，缓存层宁可返回原值，也不要影响主请求流程。
     return value;
   }
 }

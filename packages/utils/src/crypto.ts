@@ -58,6 +58,7 @@ export function base64Decode(str: string): string {
  * 简单加密（基于 XOR 异或算法）。
  *
  * 该算法仅用于轻量混淆，不提供现代密码学意义上的安全性。
+ * 不要用于密码、访问令牌、身份证号等敏感信息存储或传输。
  * @param str 要加密的字符串
  * @param key 加密密钥
  * @returns 加密后的字符串
@@ -84,6 +85,9 @@ export function xorEncrypt(str: string, key: string): string {
 
 /**
  * 简单解密（基于 XOR 异或算法）。
+ *
+ * 这里与 xorEncrypt 保持完全镜像的字符位运算逻辑；
+ * 只适用于演示或弱安全场景，不应被误认为可替代真正加密方案。
  * @param str 加密后的字符串
  * @param key 解密密钥
  * @returns 解密后的字符串

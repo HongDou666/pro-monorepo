@@ -51,11 +51,15 @@ export class RequestConcurrencyController {
       // 这里保存的是“拿到槽位后如何继续执行”的回调，而不是实际请求任务本身。
       const task: QueueTask = {
         resolve: () => {
+          // 一旦任务真正拿到槽位，就立刻解绑 abort 监听，
+          // 后续请求生命周期交给外层请求自己的 AbortController 处理。
           signal.removeEventListener("abort", onAbort);
           this.activeCount += 1;
           resolve();
         },
         reject: error => {
+          // reject 可能来自批量取消、排队中 abort 或 drainQueue 跳过，
+          // 统一在这里做监听清理，避免队列项悬挂在 signal 上。
           signal.removeEventListener("abort", onAbort);
           reject(error);
         },
@@ -111,6 +115,7 @@ export class RequestConcurrencyController {
 
       if (task.signal.aborted) {
         // 如果任务在排队期间已取消，则直接跳过并处理下一项。
+        // 这里不能增加 activeCount，因为这类任务从未真正拿到过并发槽位。
         task.reject(new Error(getAbortReason(task.signal)));
         continue;
       }

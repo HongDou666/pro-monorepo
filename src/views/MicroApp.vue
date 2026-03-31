@@ -182,13 +182,6 @@ watch(currentApp, nextApp => {
   box-sizing: border-box;
   min-height: 100%;
 
-  &__title {
-    font-size: 22px;
-    font-weight: 600;
-    color: #1890ff;
-    margin: 6px 0 12px;
-  }
-
   &__content {
     display: grid;
     flex: 1;
