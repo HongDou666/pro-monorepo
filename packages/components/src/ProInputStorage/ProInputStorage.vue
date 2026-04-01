@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Input, Button, Radio, message } from "ant-design-vue";
+import message from "ant-design-vue/es/message";
+import Button from "ant-design-vue/es/button";
+import Input from "ant-design-vue/es/input";
+import Radio from "ant-design-vue/es/radio";
+import type { RadioChangeEvent } from "ant-design-vue/es/radio";
 import { setStorage, removeStorage } from "@pro-monorepo/utils";
 
 /**
@@ -135,8 +139,14 @@ const handleClick = () => {
 };
 
 /** 模式切换事件处理 */
-const handleModeChange = (e: { target: { value: ModeType } }) => {
-  mode.value = e.target.value;
+const handleModeChange = (e: RadioChangeEvent) => {
+  const nextMode = e.target.value;
+
+  if (nextMode !== "set" && nextMode !== "remove") {
+    return;
+  }
+
+  mode.value = nextMode;
 
   // 切换模式时清空输入，避免“删除模式误带旧 value”或“存储模式误复用旧 key/value”。
   keyInput.value = "";

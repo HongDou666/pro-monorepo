@@ -11,8 +11,8 @@
  * - 不耦合 iframe 实现细节。
  * - 生命周期和缓存行为由 micro-app 托管。
  */
-import { message } from "ant-design-vue";
-import microApp from "@micro-zoe/micro-app";
+import message from "ant-design-vue/es/message";
+import microApp, { setupMicroApp } from "@/plugins/micro-app";
 import {
   createMicroAppMessage,
   formatMicroAppMessage,
@@ -118,6 +118,8 @@ function handleError() {
 }
 
 onMounted(() => {
+  // 运行时延迟到页面首次进入时再初始化，避免首页首屏就把 micro-app 框架打进入口包。
+  setupMicroApp();
   bindSubAppDataListener(currentApp.value);
 });
 
@@ -152,7 +154,7 @@ watch(currentApp, nextApp => {
           <div v-if="receivedData" class="micro-app__data">
             <pre>{{ receivedData }}</pre>
           </div>
-          <a-empty v-else description="暂无数据" :image-style="{ height: '40px' }" />
+          <div v-else class="micro-app__empty">暂无数据</div>
         </a-space>
       </a-card>
 
@@ -239,6 +241,18 @@ watch(currentApp, nextApp => {
       margin: 0;
       font-size: 12px;
     }
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 72px;
+    border: 1px dashed #dbe2ea;
+    border-radius: 10px;
+    background: #fafcff;
+    color: #94a3b8;
+    font-size: 13px;
   }
 }
 </style>

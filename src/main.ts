@@ -2,11 +2,9 @@ import { createApp } from "vue";
 import { MOCK_APP_SCOPE, setupMockInDev } from "@pro-monorepo/mock";
 import "@/styles/index";
 import App from "@/App.vue";
-import { setupQiankun } from "@/plugins/qiankun";
 import router from "@/router";
 import { setupRouterGuard } from "@/router/router-guard";
 import { setupNProgress } from "@/plugins/nprogress";
-import { setupMicroApp } from "@/plugins/micro-app";
 
 /**
  * 主应用启动入口。
@@ -22,12 +20,6 @@ async function bootstrap() {
 
   // 先配置进度条，再注册路由守卫，确保首个路由跳转也能显示反馈。
   setupNProgress();
-
-  // micro-app 需要尽早启动，以便主应用页面首次进入微前端容器时能立即接管生命周期。
-  setupMicroApp();
-
-  // qiankun 只需要全局启动一次，具体子应用由页面组件按需装载。
-  setupQiankun();
 
   // 从这里开始进入 Vue 应用装配阶段。
   const app = createApp(App);

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { MicroApp } from "qiankun";
 import { loadMicroApp } from "qiankun";
-import { message } from "ant-design-vue";
+import message from "ant-design-vue/es/message";
 import { QIANKUN_SUB_APP_URLS, isQiankunDebugEnabled, type QiankunSubAppName } from "@/plugins/qiankun-app-config";
-import { getQiankunStateActions } from "@/plugins/qiankun";
+import { getQiankunStateActions, setupQiankun } from "@/plugins/qiankun";
 import {
   buildMainToSubAppState,
   createInitialQiankunCommunicationState,
@@ -354,6 +354,9 @@ async function handleSwitchApp(nextApp: QiankunSubAppName) {
 }
 
 onMounted(() => {
+  // 与 micro-app 一样延迟到页面进入时再启动 qiankun，减少主入口的首屏负担。
+  setupQiankun();
+
   // 页面进入时先恢复通信监听，再排队挂载当前默认子应用。
   bindGlobalStateListener();
 
@@ -394,7 +397,7 @@ onBeforeUnmount(() => {
           <div v-if="receivedData" class="qiankun-app__data">
             <pre>{{ receivedData }}</pre>
           </div>
-          <a-empty v-else description="暂无数据" :image-style="{ height: '40px' }" />
+          <div v-else class="qiankun-app__empty">暂无数据</div>
 
           <a-space wrap>
             <a-button type="primary" :loading="loading" @click="reloadCurrentMicroApp">重新加载</a-button>
@@ -414,14 +417,14 @@ onBeforeUnmount(() => {
       <a-card title="子应用" class="qiankun-app__card qiankun-app__card--container">
         <div class="qiankun-app__container-wrapper">
           <div v-if="loading" class="qiankun-app__overlay">正在加载 {{ currentAppMeta.title }}...</div>
-          <a-result v-else-if="errorMessage" status="error" title="子应用加载失败" :sub-title="errorMessage">
-            <template #extra>
-              <a-space>
-                <a-button type="primary" @click="reloadCurrentMicroApp">重试</a-button>
-                <a-button @click="openCurrentMicroAppInNewTab">直接打开子应用</a-button>
-              </a-space>
-            </template>
-          </a-result>
+          <div v-else-if="errorMessage" class="qiankun-app__error-state">
+            <h3>子应用加载失败</h3>
+            <p>{{ errorMessage }}</p>
+            <div class="qiankun-app__error-actions">
+              <a-button type="primary" @click="reloadCurrentMicroApp">重试</a-button>
+              <a-button @click="openCurrentMicroAppInNewTab">直接打开子应用</a-button>
+            </div>
+          </div>
 
           <div ref="containerRef" class="qiankun-app__container" :class="{ 'is-hidden': !!errorMessage }" />
         </div>
@@ -501,6 +504,18 @@ onBeforeUnmount(() => {
     }
   }
 
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 72px;
+    border: 1px dashed #dbe2ea;
+    border-radius: 10px;
+    background: #fafcff;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
   &__container-wrapper {
     position: relative;
     width: 100%;
@@ -521,6 +536,38 @@ onBeforeUnmount(() => {
     background: rgb(255 255 255 / 86%);
     color: #475569;
     backdrop-filter: blur(2px);
+  }
+
+  &__error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: 32px;
+    text-align: center;
+
+    h3 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 12px 0 0;
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+  }
+
+  &__error-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   &__container {

@@ -1,4 +1,6 @@
-import type { QiankunSubAppName } from "../../shared/qiankun/communication";
+import type { QiankunSubAppName as SharedQiankunSubAppName } from "../../shared/qiankun/communication";
+
+export type QiankunSubAppName = SharedQiankunSubAppName;
 
 type QiankunSubAppUrlMap = Record<QiankunSubAppName, string>;
 

@@ -6,6 +6,33 @@ import Components from "unplugin-vue-components/vite";
 import { AntDesignVueResolver } from "unplugin-vue-components/resolvers";
 import { fileURLToPath, URL } from "node:url";
 
+function createManualChunks(id: string) {
+  if (!id.includes("node_modules")) {
+    return undefined;
+  }
+
+  // 核心框架优先单独成包，提升长期缓存命中率。
+  if (id.includes("/vue/") || id.includes("vue-router")) {
+    return "vendor-vue";
+  }
+
+  // Ant Design Vue 及其配套依赖通常体积较大，单独拆分便于首屏之外按需加载。
+  if (id.includes("ant-design-vue") || id.includes("@ant-design") || id.includes("@ctrl/tinycolor")) {
+    return "vendor-ant-design-vue";
+  }
+
+  // 两套微前端运行时单独分包，避免普通业务页首次访问就下载整套框架。
+  if (id.includes("@micro-zoe/micro-app")) {
+    return "vendor-micro-app";
+  }
+
+  if (id.includes("/qiankun/") || id.includes("/import-html-entry/") || id.includes("/single-spa/")) {
+    return "vendor-qiankun";
+  }
+
+  return "vendor-misc";
+}
+
 /**
  * 主应用 Vite 配置。
  *
@@ -57,6 +84,21 @@ export default defineConfig({
       ]
     })
   ],
+  build: {
+    // 让异步路由页与 UI 组件样式保持分拆，避免所有页面样式一起进入首包。
+    cssCodeSplit: true,
+    // 这里提高告警阈值，配合 manualChunks 观察真正异常的大块，而不是被常规 UI vendor 噪声淹没。
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // 按依赖类型稳定拆包，兼顾首屏体积、浏览器缓存与后续排障可读性。
+        manualChunks: createManualChunks,
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]"
+      }
+    }
+  },
   resolve: {
     alias: {
       // 主应用别名

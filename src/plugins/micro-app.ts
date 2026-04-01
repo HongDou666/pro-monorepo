@@ -1,6 +1,8 @@
 import microApp from "@micro-zoe/micro-app";
 import { MICRO_APP_URLS, isMicroAppDebugEnabled } from "./micro-app-config";
 
+let hasStartedMicroApp = false;
+
 function getPreFetchApps() {
   if (import.meta.env.DEV) {
     return undefined;
@@ -28,6 +30,10 @@ function debugMicroAppLog(message: string): void {
  * 3. 生命周期日志，方便排查子应用装载问题。
  */
 export function setupMicroApp(): void {
+  if (hasStartedMicroApp) {
+    return;
+  }
+
   const preFetchApps = getPreFetchApps();
 
   microApp.start({
@@ -59,6 +65,8 @@ export function setupMicroApp(): void {
       }
     }
   });
+
+  hasStartedMicroApp = true;
 }
 
 export default microApp;

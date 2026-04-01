@@ -77,20 +77,24 @@ function handleCancelRequests() {
       </a-card>
 
       <a-card title="项目特性" class="home__card">
-        <a-list
-          :data-source="[
-            { title: 'Vue 3 + TypeScript', desc: '现代化的前端技术栈' },
-            { title: 'Vite 构建', desc: '极速的开发体验' },
-            { title: 'Monorepo 架构', desc: '统一管理多个包' },
-            { title: '自动导入', desc: 'API 和组件自动注册' }
-          ]"
-        >
-          <template #renderItem="{ item }">
-            <a-list-item>
-              <a-list-item-meta :title="item.title" :description="item.desc" />
-            </a-list-item>
-          </template>
-        </a-list>
+        <ul class="home__feature-list">
+          <li class="home__feature-item">
+            <strong>Vue 3 + TypeScript</strong>
+            <span>现代化的前端技术栈</span>
+          </li>
+          <li class="home__feature-item">
+            <strong>Vite 构建</strong>
+            <span>极速的开发体验</span>
+          </li>
+          <li class="home__feature-item">
+            <strong>Monorepo 架构</strong>
+            <span>统一管理多个包</span>
+          </li>
+          <li class="home__feature-item">
+            <strong>自动导入</strong>
+            <span>API 和组件自动注册</span>
+          </li>
+        </ul>
       </a-card>
 
       <a-card title="公共请求包接入示例" class="home__card">
@@ -193,6 +197,37 @@ function handleCancelRequests() {
     background: #f8fafc;
     color: #475569;
     font-size: 13px;
+  }
+
+  &__feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__feature-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fbfdff;
+
+    strong {
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
   }
 }
 </style>

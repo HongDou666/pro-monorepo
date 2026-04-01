@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { DatePicker } from "ant-design-vue";
+import DatePicker from "ant-design-vue/es/date-picker";
 import type { Dayjs } from "dayjs";
-import dayjs from "dayjs";
-
+import dayjs, { isDayjs } from "dayjs";
 /**
  * 带日期跨度限制的范围选择组件。
  *
@@ -45,8 +44,16 @@ const emit = defineEmits<{
   (e: "change", value: [string, string] | null, dates: [Dayjs, Dayjs] | null): void;
 }>();
 
+const { RangePicker } = DatePicker;
+
+type RangePickerChangeValue = [string, string] | [Dayjs, Dayjs];
+
 /** 内部日期值 */
 const dateValue = ref<[Dayjs, Dayjs] | null>(null);
+
+function isDayjsRange(value: unknown): value is [Dayjs, Dayjs] {
+  return Array.isArray(value) && value.length === 2 && isDayjs(value[0]) && isDayjs(value[1]);
+}
 
 /** 同步外部 modelValue */
 watch(
@@ -77,16 +84,18 @@ const disabledDate = (current: Dayjs) => {
 };
 
 /** 处理日期变化 */
-const handleChange = (dates: [Dayjs, Dayjs] | null) => {
-  dateValue.value = dates;
+const handleChange = (value: RangePickerChangeValue | null | undefined) => {
+  if (isDayjsRange(value)) {
+    dateValue.value = value;
 
-  if (dates && dates[0] && dates[1]) {
     // 对外统一输出格式化字符串，避免业务层重复处理 dayjs -> string 的转换。
-    const result: [string, string] = [dates[0].format(props.format), dates[1].format(props.format)];
+    const result: [string, string] = [value[0].format(props.format), value[1].format(props.format)];
 
     emit("update:modelValue", result);
-    emit("change", result, dates);
+    emit("change", result, value);
   } else {
+    dateValue.value = null;
+
     // 清空时同时清掉 v-model 和 change 事件值，保持受控语义一致。
     emit("update:modelValue", null);
     emit("change", null, null);
@@ -94,10 +103,10 @@ const handleChange = (dates: [Dayjs, Dayjs] | null) => {
 };
 
 /** 处理日历面板变化（用于限制日期范围） */
-const handleCalendarChange = (dates: [Dayjs, Dayjs] | null) => {
+const handleCalendarChange = (value: unknown) => {
   // 用户只选中起始日期时也要先记录下来，disabledDate 才能据此限制后续日期。
-  if (dates && dates[0]) {
-    dateValue.value = dates;
+  if (Array.isArray(value) && value.length === 2 && isDayjs(value[0])) {
+    dateValue.value = isDayjs(value[1]) ? [value[0], value[1]] : [value[0], value[0]];
   }
 };
 </script>
@@ -108,8 +117,8 @@ const handleCalendarChange = (dates: [Dayjs, Dayjs] | null) => {
       这里直接复用 antd RangePicker 的外观与交互，
       组件自身主要补充范围限制和字符串值同步这两层能力。
     -->
-    <DatePicker.RangePicker
-      :value="dateValue"
+    <RangePicker
+      :value="dateValue ?? undefined"
       :disabled-date="disabledDate"
       :placeholder="placeholder"
       :disabled="disabled"

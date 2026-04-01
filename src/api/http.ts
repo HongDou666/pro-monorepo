@@ -1,5 +1,5 @@
 import { createHttpClient, setupHttpInterceptors } from "@pro-monorepo/axios";
-import { message } from "ant-design-vue";
+import message from "ant-design-vue/es/message";
 
 /**
  * 主应用 access token 的本地存储 key。
