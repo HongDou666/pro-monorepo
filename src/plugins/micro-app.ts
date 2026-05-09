@@ -38,6 +38,7 @@ export function setupMicroApp(): void {
 
   microApp.start({
     // 使用 state 模式，避免与主应用路由冲突
+    // 子应用路由变化不直接修改浏览器 URL path，而是把路由状态存到 history.state 里。
     "router-mode": "state",
     // 开发态下关闭预加载，避免 Vite React 注入的内联 ESM 预热脚本被 micro-app 预加载器按普通脚本执行。
     ...(preFetchApps
